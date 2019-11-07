@@ -1,4 +1,5 @@
 import ToolsInterfaces
+from ToolsInterfaces.IngestorInterface import IngestorInterface
 
 
 class AEPDataIngestor(IngestorInterface):
