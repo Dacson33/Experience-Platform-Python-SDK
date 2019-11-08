@@ -1,5 +1,6 @@
 class AuthToken:
-	def __init__(self,token,expiration):
+
+	def __init__(self, token, expiration):
 		self.Token = token
 		self.Expiration = expiration
 	

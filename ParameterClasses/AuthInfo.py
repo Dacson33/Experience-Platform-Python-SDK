@@ -1,4 +1,5 @@
 class AuthInfo:
+
 	def __init__(self, username, password, apiKey):
 		self.Username = username
 		self.Password = password
