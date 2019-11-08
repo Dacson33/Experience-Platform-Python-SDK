@@ -1,9 +1,10 @@
-import ToolsInterface
+from ToolsInterfaces.IngestorInterface import IngestorInterface
+from ToolsInterfaces.CataloguerInterface import CataloguerInterface
 
 
 class Importer:
 
-    def __init__(self, ingestor, cataloguer):
+    def __init__(self, ingestor:IngestorInterface, cataloguer:CataloguerInterface):
         self.ingestor = ingestor
         self.cataloguer = cataloguer
 
