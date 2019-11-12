@@ -9,5 +9,3 @@ class AEPDataIngestor(IngestorInterface):
     def upload(self):
         pass
 
-    def login(self):
-        pass
