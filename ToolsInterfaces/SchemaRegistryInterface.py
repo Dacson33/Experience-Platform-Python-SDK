@@ -3,7 +3,11 @@ from ParameterClasses.AuthInfo import AuthInfo
 from ParameterClasses.AuthToken import AuthToken
 
 
-class SchemaInterface(abc.ABC):
+class SchemaRegistryInterface(abc.ABC):
+
+    @abc.abstractmethod
+    def validateSchema(self, schema, authInfo:AuthInfo):
+        pass
 
     @abc.abstractmethod
     def getSchema(self, schemaId, authInfo:AuthInfo):
