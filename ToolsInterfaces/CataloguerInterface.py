@@ -1,9 +1,5 @@
-from ParameterClasses.AuthToken import AuthToken
+import abc
 
-class CataloguerInterface:
+class CataloguerInterface(abc.ABC):
 
-	def __init__(self):
-		pass
-	
-	def validateSchema(self, schema, datasetID, authToken:AuthToken):
-		return None
+	pass
