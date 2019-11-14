@@ -1,3 +1,3 @@
-class CataloguerInterface:
-	def __init__(self):
-		pass
+import abc
+
+class CataloguerInterface(abc.ABC):
