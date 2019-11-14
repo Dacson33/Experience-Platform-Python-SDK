@@ -1,15 +1,17 @@
 import abc
 from ParameterClasses.AuthInfo import AuthInfo
 from ParameterClasses.AuthToken import AuthToken
+from ParameterClasses.Schema import Schema
+from ParameterClasses.DataSetId import DataSetId
 
 class ValidatorInterface(abc.ABC):
 
     @abc.abstractmethod
-    def validateSchema(self, schema, dataSetID, authToken:AuthToken):
+    def validateSchema(self, schema:Schema, dataSetID:DataSetId, authToken:AuthToken):
         pass
 	
     @abc.abstractmethod
-    def getSchema(self, schemaId, authInfo:AuthInfo):
+    def getSchema(self, schema:Schema, authInfo:AuthInfo):
         pass
 
     @abc.abstractmethod
