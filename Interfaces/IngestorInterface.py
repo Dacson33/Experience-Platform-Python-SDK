@@ -1,7 +1,6 @@
 import abc
 from ParameterClasses.AuthToken import AuthToken
 
-
 class IngestorInterface(abc.ABC):
 
     @abc.abstractmethod

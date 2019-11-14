@@ -1,6 +1,5 @@
-from ToolsInterfaces.IngestorInterface import IngestorInterface
-from ToolsInterfaces.CataloguerInterface import CataloguerInterface
-
+from Interfaces.IngestorInterface import IngestorInterface
+from Interfaces.CataloguerInterface import CataloguerInterface
 
 class Importer:
 
