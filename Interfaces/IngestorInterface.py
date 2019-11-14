@@ -3,6 +3,7 @@ from ParameterClasses.AuthToken import AuthToken
 from ParameterClasses.DataSetId import DataSetId
 from ParameterClasses.Schema import Schema
 
+
 class IngestorInterface(abc.ABC):
 
     @abc.abstractmethod

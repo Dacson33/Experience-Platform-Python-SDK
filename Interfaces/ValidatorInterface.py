@@ -4,6 +4,7 @@ from ParameterClasses.AuthToken import AuthToken
 from ParameterClasses.Schema import Schema
 from ParameterClasses.DataSetId import DataSetId
 
+
 class ValidatorInterface(abc.ABC):
 
     @abc.abstractmethod

@@ -3,6 +3,7 @@ from ParameterClasses.AuthInfo import AuthInfo
 from ParameterClasses.AuthToken import AuthToken
 from ParameterClasses.Schema import Schema
 
+
 class Validator(ValidatorInterface):
     def __init__(self):
         pass
