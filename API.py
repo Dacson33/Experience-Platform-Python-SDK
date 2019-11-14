@@ -12,6 +12,6 @@ class API:
     pass
   
   def upload(self):
-    validate()
-    send()
-    report()
+    self.validate()
+    self.send()
+    self.report()
