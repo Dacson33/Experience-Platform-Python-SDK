@@ -1,7 +1,7 @@
 class AuthToken:
 	def __init__(self,token,expiration):
 		self.Token = token
-		self.Expiration = Expiration
+		self.Expiration = expiration
 	
 	def getToken(self):
 		return self.Token #String
