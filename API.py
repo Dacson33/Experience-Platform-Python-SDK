@@ -19,6 +19,15 @@ class API:
         self.datasetId = self.dataId()
 
     def report(self):
+        headers = {
+            'id': identification,
+            'Authorization': 'Bearer ' + self.access,
+            'x-api-key': self.apiKey,
+            'x-gw-ims-org-id': self.imsOrg,
+            'x-sandbox-name': self.sandbox,
+        }
+
+        response = requests.get('https://platform.adobe.io/data/foundation/catalog/batches', headers=headers)
         pass
 
     def validate(self):
@@ -73,7 +82,7 @@ class API:
             'Authorization': 'Bearer ' + self.accessToken,
             'x-api-key': self.apiKey,
             'x-gw-ims-org-id': self.imsOrg,
-            'x-sandbox-name': '{SANDBOX_NAME}',
+            'x-sandbox-name': self.sandbox,
         }
         params = (
             ('limit', '5'),
