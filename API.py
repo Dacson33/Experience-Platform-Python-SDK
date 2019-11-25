@@ -1,6 +1,7 @@
 import requests
 import json
 
+
 class API:
 
     def __init__(self):
@@ -10,18 +11,20 @@ class API:
         self.clientSecret = data['client_secret']
         self.jwtToken = data['jwt_token']
         self.imsOrg = data['ims_org']
-        self.access = ''
-  
+        self.accessToken = self.access()
+        self.sandbox = self.sandboxName()
+        self.datasetId = self.dataId()
+
     def report(self):
         pass
-  
+
     def validate(self):
         pass
-  
+
     def send(self):
         pass
-  
-    def upload(self):
+
+    def access(self):
         print(self.apiKey)
         print(self.clientSecret)
         print(self.jwtToken)
@@ -32,7 +35,50 @@ class API:
         }
         testData = requests.post('https://ims-na1.adobelogin.com/ims/exchange/jwt/', files=files)
         print(testData.json())
-        self.access = testData.json()['access_token']
+        #return testData.json()['access_token']
+        return ""
+
+    def sandboxName(self):
+        print(self.apiKey)
+        print(self.clientSecret)
+        print(self.jwtToken)
+        print(self.accessToken)
+        headers = {
+            'Authorization': 'Bearer ' + self.accessToken,
+            'x-api-key': self.apiKey,
+            'x-gw-ims-org-id': self.imsOrg,
+        }
+        params = (
+            ('limit', '5'),
+            ('properties', 'name'),
+        )
+        response = requests.get('https://platform.adobe.io/data/foundation/sandbox-management/sandboxes', headers=headers,
+                                params=params)
+        print(response.json())
+        #return response.json()['name']
+        return ""
+
+    def dataId(self):
+        print(self.apiKey)
+        print(self.clientSecret)
+        print(self.jwtToken)
+        print(self.accessToken)
+        headers = {
+            'Authorization': 'Bearer ' + self.accessToken,
+            'x-api-key': self.apiKey,
+            'x-gw-ims-org-id': self.imsOrg,
+            'x-sandbox-name': '{SANDBOX_NAME}',
+        }
+        params = (
+            ('limit', '5'),
+            ('properties', 'name'),
+        )
+        response = requests.get('https://platform.adobe.io/data/foundation/catalog/dataSets', headers=headers, params=params)
+        print(response.json())
+        return response.json()
+
+    def upload(self):
+        pass
+
 
 api = API()
-api.upload()
