@@ -1,6 +1,7 @@
 import requests
 import json
 import jwt
+import datetime
 import cryptography
 
 from ParameterClasses.AuthToken import AuthToken
@@ -15,7 +16,7 @@ class API:
         self.apiKey = data['api_key']
         self.clientSecret = data['client_secret']
         payload = {
-            "exp": 2000000000,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=600),
             "iss": data['ims_org'],
             "sub": data['sub'],
             "https://ims-na1.adobelogin.com/s/ent_dataservices_sdk": data['bool'],
