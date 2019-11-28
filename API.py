@@ -1,5 +1,7 @@
 import requests
 import json
+import jwt
+import cryptography
 
 from ParameterClasses.AuthToken import AuthToken
 from ParameterClasses.DataSetId import DataSetId
@@ -12,13 +14,23 @@ class API:
             data = json.load(json_data_file)
         self.apiKey = data['api_key']
         self.clientSecret = data['client_secret']
-        self.jwtToken = data['jwt_token']
+        payload = {
+            "exp": 2000000000,
+            "iss": data['ims_org'],
+            "sub": data['sub'],
+            "https://ims-na1.adobelogin.com/s/ent_dataservices_sdk": data['bool'],
+            "aud": 'https://ims-na1.adobelogin.com/c/' + data['api_key']
+        }
+        print(payload['aud'])
+        #self.jwtToken = data['jwt_token']
+        self.jwtToken = jwt.encode(payload, data['secret'], algorithm='RS256').decode('utf-8')
+        print(self.jwtToken)
         self.imsOrg = data['ims_org']
         self.accessToken = self.access()
         self.sandbox = self.sandboxName()
         self.datasetId = self.dataId()
 
-    def report(self):
+    def report(self, identification):
         headers = {
             'id': identification,
             'Authorization': 'Bearer ' + self.access,
@@ -37,29 +49,24 @@ class API:
         pass
 
     def access(self):
-        print(self.apiKey)
-        print(self.clientSecret)
-        print(self.jwtToken)
         files = {
             'client_id': (None, self.apiKey),
             'client_secret': (None, self.clientSecret),
             'jwt_token': (None, self.jwtToken),
         }
         testData = requests.post('https://ims-na1.adobelogin.com/ims/exchange/jwt/', files=files)
+        #print('Access')
         print(testData.json())
-        #name = testData.json()['access_token']
-        #expiration = testData.json()['expires_in']
-        #authorization = AuthToken(name, expiration)
-        #return authorization
-        return ""
+        name = testData.json()['access_token']
+        #print(name)
+        expiration = testData.json()['expires_in']
+        #print(expiration)
+        authorization = AuthToken(name, expiration)
+        return authorization
 
     def sandboxName(self):
-        print(self.apiKey)
-        print(self.clientSecret)
-        print(self.jwtToken)
-        print(self.accessToken)
         headers = {
-            'Authorization': 'Bearer ' + self.accessToken,
+            'Authorization': 'Bearer ' + self.accessToken.getToken(),
             'x-api-key': self.apiKey,
             'x-gw-ims-org-id': self.imsOrg,
         }
@@ -69,26 +76,25 @@ class API:
         )
         response = requests.get('https://platform.adobe.io/data/foundation/sandbox-management/sandboxes', headers=headers,
                                 params=params)
+        print('Sandbox')
         print(response.json())
+        #print(response.json()['name'])
         #return response.json()['name']
         return ""
 
     def dataId(self):
-        print(self.apiKey)
-        print(self.clientSecret)
-        print(self.jwtToken)
-        print(self.accessToken)
         headers = {
-            'Authorization': 'Bearer ' + self.accessToken,
+            'Authorization': 'Bearer ' + self.accessToken.getToken(),
             'x-api-key': self.apiKey,
             'x-gw-ims-org-id': self.imsOrg,
-            'x-sandbox-name': self.sandbox,
+            #'x-sandbox-name': self.sandbox,
         }
         params = (
             ('limit', '5'),
             ('properties', 'name'),
         )
         response = requests.get('https://platform.adobe.io/data/foundation/catalog/dataSets', headers=headers, params=params)
+        print('DataSetID')
         print(response.json())
         #datasetID = DataSetId(response.json())
         return response.json()
@@ -98,7 +104,7 @@ class API:
             'content-type': 'application/octet-stream',
             'x-gw-ims-org-id': self.imsOrg,
             'x-sandbox-name': self.sandbox,
-            'Authorization': 'Bearer ' + self.accessToken,
+            'Authorization': 'Bearer ' + self.accessToken.getToken(),
             'x-api-key': self.apiKey,
         }
         data = {
