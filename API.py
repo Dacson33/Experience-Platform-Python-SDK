@@ -19,22 +19,22 @@ class API:
             "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=600),
             "iss": data['ims_org'],
             "sub": data['sub'],
-            "https://ims-na1.adobelogin.com/s/ent_dataservices_sdk": data['bool'],
+            "https://ims-na1.adobelogin.com/s/ent_dataservices_sdk": True,
             "aud": 'https://ims-na1.adobelogin.com/c/' + data['api_key']
         }
-        print(payload['aud'])
+        #print(payload['aud'])
         #self.jwtToken = data['jwt_token']
         self.jwtToken = jwt.encode(payload, data['secret'], algorithm='RS256').decode('utf-8')
-        print(self.jwtToken)
+        #print(self.jwtToken)
         self.imsOrg = data['ims_org']
         self.accessToken = self.access()
         self.sandbox = self.sandboxName()
-        self.datasetId = self.dataId()
+        self.datasetIds = self.dataId()
 
     def report(self, identification):
         headers = {
             'id': identification,
-            'Authorization': 'Bearer ' + self.access,
+            'Authorization': 'Bearer ' + self.accessToken,
             'x-api-key': self.apiKey,
             'x-gw-ims-org-id': self.imsOrg,
             'x-sandbox-name': self.sandbox,
@@ -97,10 +97,15 @@ class API:
         response = requests.get('https://platform.adobe.io/data/foundation/catalog/dataSets', headers=headers, params=params)
         print('DataSetID')
         print(response.json())
+        ids = []
+        #In order to get a specific datasetID what we could do is iterate through the response and create multiple datasetID objects that way since we can access the key by index since response in an unordered dict
+        for id in response.json():
+            datasetID = DataSetId(id)
+            ids.append(datasetID)
         #datasetID = DataSetId(response.json())
-        return response.json()
+        return ids
 
-    def upload(self, fileName):
+    def upload(self, fileName, datasetId):
         headers = {
             'content-type': 'application/octet-stream',
             'x-gw-ims-org-id': self.imsOrg,
@@ -109,7 +114,7 @@ class API:
             'x-api-key': self.apiKey,
         }
         data = {
-            'datasetId': self.datasetId
+            'datasetId': datasetId
         }
         response = requests.post('https://platform.adobe.io/data/foundation/import/batches', headers=headers, data=data)
         batchId = response.json()['id']
