@@ -15,6 +15,7 @@ class API:
             data = json.load(json_data_file)
         self.apiKey = data['api_key']
         self.clientSecret = data['client_secret']
+        self.dID = data['dataID']
         payload = {
             "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=600),
             "iss": data['ims_org'],
@@ -28,20 +29,20 @@ class API:
         #print(self.jwtToken)
         self.imsOrg = data['ims_org']
         self.accessToken = self.access()
-        self.sandbox = self.sandboxName()
+        #self.sandbox = self.sandboxName()
         self.datasetIds = self.dataId()
+        self.upload('test128.json', self.dID)
 
     def report(self, identification):
         headers = {
-            'id': identification,
-            'Authorization': 'Bearer ' + self.accessToken,
-            'x-api-key': self.apiKey,
             'x-gw-ims-org-id': self.imsOrg,
-            'x-sandbox-name': self.sandbox,
+            'Authorization': 'Bearer ' + self.accessToken.getToken(),
+            'x-api-key': self.apiKey
         }
 
-        response = requests.get('https://platform.adobe.io/data/foundation/catalog/batches', headers=headers)
-        pass
+        response = requests.get('https://platform.adobe.io/data/foundation/catalog/batches/' + identification, headers=headers)
+        for id in response.json():
+            print('Batch Status: ' + response.json()[id]['status'])
 
     def validate(self):
         pass
@@ -57,7 +58,7 @@ class API:
         }
         testData = requests.post('https://ims-na1.adobelogin.com/ims/exchange/jwt/', files=files)
         #print('Access')
-        print(testData.json())
+        #print(testData.json())
         name = testData.json()['access_token']
         #print(name)
         expiration = testData.json()['expires_in']
@@ -78,7 +79,7 @@ class API:
         response = requests.get('https://platform.adobe.io/data/foundation/sandbox-management/sandboxes', headers=headers,
                                 params=params)
         print('Sandbox')
-        print(response.json())
+        #print(response.json())
         #print(response.json()['name'])
         #return response.json()['name']
         return ""
@@ -95,8 +96,8 @@ class API:
             ('properties', 'name'),
         )
         response = requests.get('https://platform.adobe.io/data/foundation/catalog/dataSets', headers=headers, params=params)
-        print('DataSetID')
-        print(response.json())
+        #print('DataSetID')
+        #print('  ' + response.json())
         ids = []
         #In order to get a specific datasetID what we could do is iterate through the response and create multiple datasetID objects that way since we can access the key by index since response in an unordered dict
         for id in response.json():
@@ -107,20 +108,37 @@ class API:
 
     def upload(self, fileName, datasetId):
         headers = {
-            'content-type': 'application/octet-stream',
+            'Content-Type': 'application/json',
             'x-gw-ims-org-id': self.imsOrg,
-            'x-sandbox-name': self.sandbox,
             'Authorization': 'Bearer ' + self.accessToken.getToken(),
-            'x-api-key': self.apiKey,
+            'x-api-key': self.apiKey
         }
-        data = {
-            'datasetId': datasetId
-        }
+        data = '{ \n          "datasetId": "'+datasetId+'" \n      }'
         response = requests.post('https://platform.adobe.io/data/foundation/import/batches', headers=headers, data=data)
+        print('Create batch status: ' + response.json()['status'])
         batchId = response.json()['id']
-        data = open('Tests/' + fileName, 'rb').read()
-        response = requests.put('https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + self.datasetId + '/files/' + fileName, headers=headers, data=data)
-        return response.json()
+        headers = {
+            'Content-Type': 'application/octet-stream',
+            'x-gw-ims-org-id': self.imsOrg,
+            'Authorization': 'Bearer ' + self.accessToken.getToken(),
+            'x-api-key': self.apiKey
+        }
 
+        print('File upload of ' + fileName + ' in progress')
+        data = open('Tests/' + fileName, 'rb').read()
+        response = requests.put('https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + datasetId + '/files/' + fileName, headers=headers, data=data)
+        print(response)
+        headers = {
+            'x-gw-ims-org-id': self.imsOrg,
+            'Authorization': 'Bearer ' + self.accessToken.getToken(),
+            'x-api-key': self.apiKey
+        }
+        params = (
+            ('action', 'COMPLETE'),
+        )
+        print('Signal Completion: ')
+        response = requests.post('https://platform.adobe.io/data/foundation/import/batches/' + batchId, headers=headers, params=params)
+        print(response)
+        self.report(batchId)
 
 api = API()
