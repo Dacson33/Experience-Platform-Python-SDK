@@ -6,7 +6,8 @@ import cryptography
 
 from ParameterClasses.AuthToken import AuthToken
 from ParameterClasses.DataSetId import DataSetId
-
+from Tools.Cataloguer import Cataloguer
+from Tools.Ingestor import Ingestor
 
 class API:
 
@@ -28,19 +29,13 @@ class API:
         self.imsOrg = data['ims_org']
         self.accessToken = self.access()
         self.datasetIds = self.dataId()
+        self.cataloguer = Cataloguer()
+        self.ingestor = Ingestor()
         self.upload('test128.json', self.dID)
 
     #Sends a report of the status of the batch to the user
     def report(self, identification):
-        headers = {
-            'x-gw-ims-org-id': self.imsOrg,
-            'Authorization': 'Bearer ' + self.accessToken.getToken(),
-            'x-api-key': self.apiKey
-        }
-
-        response = requests.get('https://platform.adobe.io/data/foundation/catalog/batches/' + identification, headers=headers)
-        for id in response.json():
-            print('Batch Status: ' + response.json()[id]['status'])
+        self.cataloguer.report(identification, self.imsOrg, self.accessToken, self.apiKey)
 
     def validate(self):
         pass
@@ -100,40 +95,6 @@ class API:
 
     #Uploads the file to Experience Platform
     def upload(self, fileName, datasetId):
-        #Creates the batch
-        headers = {
-            'Content-Type': 'application/json',
-            'x-gw-ims-org-id': self.imsOrg,
-            'Authorization': 'Bearer ' + self.accessToken.getToken(),
-            'x-api-key': self.apiKey
-        }
-        data = '{ \n          "datasetId": "'+datasetId+'" \n      }'
-        response = requests.post('https://platform.adobe.io/data/foundation/import/batches', headers=headers, data=data)
-        print('Create batch status: ' + response.json()['status'])
-        batchId = response.json()['id']
-        #Uploads the file
-        headers = {
-            'Content-Type': 'application/octet-stream',
-            'x-gw-ims-org-id': self.imsOrg,
-            'Authorization': 'Bearer ' + self.accessToken.getToken(),
-            'x-api-key': self.apiKey
-        }
-        print('File upload of ' + fileName + ' in progress')
-        data = open('Tests/' + fileName, 'rb').read()
-        response = requests.put('https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + datasetId + '/files/' + fileName, headers=headers, data=data)
-        print(response)
-        #Signals the completion of the batch
-        headers = {
-            'x-gw-ims-org-id': self.imsOrg,
-            'Authorization': 'Bearer ' + self.accessToken.getToken(),
-            'x-api-key': self.apiKey
-        }
-        params = (
-            ('action', 'COMPLETE'),
-        )
-        print('Signal Completion: ')
-        response = requests.post('https://platform.adobe.io/data/foundation/import/batches/' + batchId, headers=headers, params=params)
-        print(response)
-        self.report(batchId)
+        self.ingestor.upload(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
 
 api = API()
