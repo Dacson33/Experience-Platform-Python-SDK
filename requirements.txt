@@ -1,3 +1,5 @@
+PyJWT
+requests
 altgraph==0.10.2
 asn1crypto==0.24.0
 bdist-mpkg==0.5.0
