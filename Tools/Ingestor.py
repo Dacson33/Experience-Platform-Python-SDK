@@ -3,6 +3,8 @@ from ParameterClasses.Schema import Schema
 from ParameterClasses.AuthToken import AuthToken
 from ParameterClasses.DataSetId import DataSetId
 import requests
+import os
+import bitmath
 
 class Ingestor(IngestorInterface):
 
@@ -48,3 +50,25 @@ class Ingestor(IngestorInterface):
         response = requests.post('https://platform.adobe.io/data/foundation/import/batches/' + batchId, headers=headers, params=params)
         print(response)
         cataloguer.report(batchId, imsOrg, accessToken, apiKey)
+
+    def uploadLarge(self, fileName, dataSetId:DataSetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
+        headers = {
+            'Content-Type': 'application/json',
+            'x-gw-ims-org-id': imsOrg,
+            'Authorization': 'Bearer ' + accessToken.getToken(),
+            'x-api-key': apiKey
+        }
+        data = '{ \n          "datasetId": "' + dataSetId + '" \n      }'
+        response = requests.post('https://platform.adobe.io/data/foundation/import/batches', headers=headers, data=data)
+        print('Create batch status: ' + response.json()['status'])
+        batchId = response.json()['id']
+        headers = {
+            'x-gw-ims-org-id': imsOrg,
+            'Authorization': 'Bearer ' + accessToken.getToken(),
+            'x-api-key': apiKey,
+        }
+        params = (
+            ('action', 'initialize'),
+        )
+        response = requests.post('https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + dataSetId + '/files/part1=a/part2=b/' + fileName, headers=headers, params=params)
+        print(response)

@@ -3,6 +3,8 @@ import json
 import jwt
 import datetime
 import cryptography
+import os
+from bitmath import KiB
 
 from ParameterClasses.AuthToken import AuthToken
 from ParameterClasses.DataSetId import DataSetId
@@ -95,6 +97,10 @@ class API:
 
     #Uploads the file to Experience Platform
     def upload(self, fileName, datasetId):
-        self.ingestor.upload(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
+        if(os.path.getsize(fileName) <= KiB(256)):
+            self.ingestor.upload(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
+        else:
+            self.ingestor.uploadLarge(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
+
 
 api = API()
