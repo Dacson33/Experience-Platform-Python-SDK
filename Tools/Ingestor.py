@@ -34,7 +34,8 @@ class Ingestor(IngestorInterface):
             'x-api-key': apiKey
         }
         print('File upload of ' + fileName + ' in progress')
-        data = open('Tests/' + fileName, 'rb').read()
+        #data = open('Tests/' + fileName, 'rb').read()
+        data = open(fileName, 'rb').read()
         response = requests.put('https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + datasetId + '/files/' + fileName, headers=headers, data=data)
         print(response)
         #Signals the completion of the batch

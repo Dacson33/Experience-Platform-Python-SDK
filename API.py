@@ -4,7 +4,7 @@ import jwt
 import datetime
 import cryptography
 import os
-from bitmath import KiB
+from bitmath import MiB
 
 from ParameterClasses.AuthToken import AuthToken
 from ParameterClasses.DataSetId import DataSetId
@@ -33,7 +33,7 @@ class API:
         self.datasetIds = self.dataId()
         self.cataloguer = Cataloguer()
         self.ingestor = Ingestor()
-        self.upload('test128.json', self.dID)
+        self.upload('Tests/test128.json', self.dID)
 
     #Sends a report of the status of the batch to the user
     def report(self, identification):
@@ -97,7 +97,7 @@ class API:
 
     #Uploads the file to Experience Platform
     def upload(self, fileName, datasetId):
-        if(os.path.getsize(fileName) <= KiB(256)):
+        if(os.path.getsize(fileName) <= MiB(256).to_Byte()):
             self.ingestor.upload(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
         else:
             self.ingestor.uploadLarge(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
