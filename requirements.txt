@@ -1,3 +1,4 @@
+fsplit
 PyJWT
 requests
 bitmath

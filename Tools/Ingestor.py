@@ -34,10 +34,10 @@ class Ingestor(IngestorInterface):
             'Authorization': 'Bearer ' + accessToken.getToken(),
             'x-api-key': apiKey
         }
-        print('File upload of ' + fileName + ' in progress')
+        print('File upload of ' + os.path.basename(fileName) + ' in progress')
         #data = open('Tests/' + fileName, 'rb').read()
-        data = open('Tests/' + fileName, 'rb').read()
-        response = requests.put('https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + datasetId + '/files/' + fileName, headers=headers, data=data)
+        data = open(fileName, 'rb').read()
+        response = requests.put('https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + datasetId + '/files/' + os.path.basename(fileName), headers=headers, data=data)
         print(response)
         #Signals the completion of the batch
         headers = {
@@ -64,7 +64,7 @@ class Ingestor(IngestorInterface):
         response = requests.post('https://platform.adobe.io/data/foundation/import/batches', headers=headers, data=data)
         print('Create batch status: ' + response.json()['status'])
         batchId = response.json()['id']
-        fs = FileSplit(file='Tests/' + fileName, splitsize=256000000, output_dir='Splits/')
+        fs = FileSplit(file=fileName, splitsize=256000000, output_dir='Splits/')
         fs.split(include_header=True)
         for entry in os.scandir('Splits/'):
             print(entry.path)

@@ -33,7 +33,7 @@ class API:
         self.datasetIds = self.dataId()
         self.cataloguer = Cataloguer()
         self.ingestor = Ingestor()
-        self.upload('test256.json', self.dID)
+        self.upload('Tests/test500.json', self.dID)
 
     #Sends a report of the status of the batch to the user
     def report(self, identification):
@@ -97,7 +97,7 @@ class API:
 
     #Uploads the file to Experience Platform
     def upload(self, fileName, datasetId):
-        if(os.path.getsize('Tests/' + fileName) <= MiB(256).to_Byte()):
+        if(os.path.getsize(fileName) <= MiB(256).to_Byte()):
             self.ingestor.upload(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
         else:
             self.ingestor.uploadLarge(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
