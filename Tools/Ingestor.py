@@ -80,6 +80,7 @@ class Ingestor(IngestorInterface):
                 'https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + dataSetId + '/files/' + os.path.basename(entry.path),
                 headers=headers, data=data)
             print(response)
+            os.remove(entry.path)
 
         headers = {
             'x-gw-ims-org-id': imsOrg,
