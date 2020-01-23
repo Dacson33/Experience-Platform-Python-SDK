@@ -19,6 +19,7 @@ class API:
         self.apiKey = data['api_key']
         self.clientSecret = data['client_secret']
         self.dID = data['dataID']
+        print(self.dID)
         #Generation of the JWT token
         payload = {
             "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=600),
@@ -41,6 +42,7 @@ class API:
 
     def validate(self, ids, dataSetID):
         realID = False
+        #print(dataSetID)
         for id in ids:
             if dataSetID == id.getIdentifier():
                 realID = True
@@ -101,6 +103,7 @@ class API:
             exit(0)
         #In order to get a specific datasetID what we could do is iterate through the response and create multiple datasetID objects that way since we can access the key by index since response in an unordered dict
         for id in response.json():
+            #print(id)
             datasetID = DataSetId(id)
             ids.append(datasetID)
         realID = self.validate(ids, self.dID)
@@ -112,9 +115,9 @@ class API:
     #Uploads the file to Experience Platform
     def upload(self, fileName, datasetId):
         if(os.path.getsize(fileName) <= MiB(256).to_Byte()):
-            self.ingestor.upload(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
+            return self.ingestor.upload(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
         else:
-            self.ingestor.uploadLarge(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
+            return self.ingestor.uploadLarge(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
 
     def error_checkJson(self, response):
         if response.json().get('error'):
@@ -123,4 +126,6 @@ class API:
         return True
 
 api = API()
-api.upload('Tests/test500.json', api.dID)
+#batch = api.upload('Tests/test128.json', api.dID)
+#batch = "f40daf60-3e1e-11ea-aee4-cfeecba20d85"
+api.cataloguer.report("e23cc350-3e20-11ea-aee4-cfeecba20d85", api.imsOrg, api.accessToken, api.apiKey)

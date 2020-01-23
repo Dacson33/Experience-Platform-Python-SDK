@@ -21,10 +21,18 @@ class Ingestor(IngestorInterface):
             'Authorization': 'Bearer ' + accessToken.getToken(),
             'x-api-key': apiKey
         }
-        data = '{ \n          "datasetId": "' + datasetId + '" \n      }'
+        #data = '{ \n          "datasetId": "' + datasetId + '" \n      }'
+        #data = '{ \n          "datasetId": "' + datasetId + ',"\n          "inputFormat": {\n      }'
+        #data = '{ \n          "datasetId": "' + datasetId + '"\n          "inputFormat": [\n                "format": "json",\n                "isMultiLineJson": True\n          ]\n      }'
+        #data = '{\n          "datasetId": "' + datasetId + '",\n           "inputFormat": {\n                "format": "json"\n           }\n      }'
+        data = '{\n          "datasetId": "' + datasetId +'",\n           "inputFormat": {\n                "format": "json",\n                "isMultiLineJson": true\n           }\n      }'
+
+        print(data)
         response = requests.post('https://platform.adobe.io/data/foundation/import/batches', headers=headers, data=data)
+        print(response.json())
         print('Create batch status: ' + response.json()['status'])
         batchId = response.json()['id']
+        print(batchId)
         return batchId
 
     def sendFile(self, fileName, batchId, datasetId, imsOrg, accessToken: AuthToken, apiKey):
@@ -67,6 +75,7 @@ class Ingestor(IngestorInterface):
             return
         #Signals the completion of the batch
         self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
+        return batchId
 
     def uploadLarge(self, fileName, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
         batchId = self.startBatch(datasetId, imsOrg, accessToken, apiKey)
@@ -79,6 +88,7 @@ class Ingestor(IngestorInterface):
                 continue
             os.remove(entry.path)
         self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
+        return batchId
 
     def error_check(self, response):
         if response.status_code != 200:
