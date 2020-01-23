@@ -33,7 +33,7 @@ class API:
         self.datasetIds = self.dataId()
         self.cataloguer = Cataloguer()
         self.ingestor = Ingestor()
-        self.upload('Tests/test128.json', self.dID)
+        self.upload('Tests/test500.json', self.dID)
 
     #Sends a report of the status of the batch to the user
     def report(self, identification):
