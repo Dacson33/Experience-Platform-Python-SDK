@@ -122,5 +122,5 @@ class API:
             return False
         return True
 
-#api = API()
-#api.upload('Tests/test500.json', api.dID)
+api = API()
+api.upload('Tests/test500.json', api.dID)
