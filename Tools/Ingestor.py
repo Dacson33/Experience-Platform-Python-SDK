@@ -22,14 +22,12 @@ class Ingestor(IngestorInterface):
             'x-api-key': apiKey
         }
         #data = '{ \n          "datasetId": "' + datasetId + '" \n      }'
-        #data = '{ \n          "datasetId": "' + datasetId + ',"\n          "inputFormat": {\n      }'
-        #data = '{ \n          "datasetId": "' + datasetId + '"\n          "inputFormat": [\n                "format": "json",\n                "isMultiLineJson": True\n          ]\n      }'
         #data = '{\n          "datasetId": "' + datasetId + '",\n           "inputFormat": {\n                "format": "json"\n           }\n      }'
         data = '{\n          "datasetId": "' + datasetId +'",\n           "inputFormat": {\n                "format": "json",\n                "isMultiLineJson": true\n           }\n      }'
 
-        print(data)
+        #print(data)
         response = requests.post('https://platform.adobe.io/data/foundation/import/batches', headers=headers, data=data)
-        print(response.json())
+        #print(response.json())
         print('Create batch status: ' + response.json()['status'])
         batchId = response.json()['id']
         print(batchId)

@@ -126,6 +126,6 @@ class API:
         return True
 
 api = API()
-#batch = api.upload('Tests/test128.json', api.dID)
+batch = api.upload('Tests/test128.json', api.dID)
 #batch = "f40daf60-3e1e-11ea-aee4-cfeecba20d85"
-api.cataloguer.report("e23cc350-3e20-11ea-aee4-cfeecba20d85", api.imsOrg, api.accessToken, api.apiKey)
+api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
