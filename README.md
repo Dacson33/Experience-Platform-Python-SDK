@@ -9,3 +9,5 @@
 ---
 
 ## Getting Started
+
+To begin first install the required dependencies using "pip install -r requirements.txt" in the terminal

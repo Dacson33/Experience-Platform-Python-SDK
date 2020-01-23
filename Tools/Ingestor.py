@@ -3,6 +3,9 @@ from ParameterClasses.Schema import Schema
 from ParameterClasses.AuthToken import AuthToken
 from ParameterClasses.DataSetId import DataSetId
 import requests
+import os
+from bitmath import MiB
+from fsplit.filesplit import FileSplit
 
 class Ingestor(IngestorInterface):
 
@@ -12,7 +15,7 @@ class Ingestor(IngestorInterface):
 #    def upload(self, file, schema:Schema, dataSetID:DataSetId, authToken:AuthToken):
 #        pass
 
-    def upload(self, fileName, datasetId:DataSetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
+    def upload(self, fileName, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
         #Creates the batch
         headers = {
             'Content-Type': 'application/json',
@@ -31,10 +34,12 @@ class Ingestor(IngestorInterface):
             'Authorization': 'Bearer ' + accessToken.getToken(),
             'x-api-key': apiKey
         }
-        print('File upload of ' + fileName + ' in progress')
-        data = open('Tests/' + fileName, 'rb').read()
-        response = requests.put('https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + datasetId + '/files/' + fileName, headers=headers, data=data)
-        print(response)
+        print('File upload of ' + os.path.basename(fileName) + ' in progress')
+        #data = open('Tests/' + fileName, 'rb').read()
+        data = open(fileName, 'rb').read()
+        response = requests.put('https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + datasetId + '/files/' + os.path.basename(fileName), headers=headers, data=data)
+        if not self.error_check(response):
+            return
         #Signals the completion of the batch
         headers = {
             'x-gw-ims-org-id': imsOrg,
@@ -46,5 +51,63 @@ class Ingestor(IngestorInterface):
         )
         print('Signal Completion: ')
         response = requests.post('https://platform.adobe.io/data/foundation/import/batches/' + batchId, headers=headers, params=params)
-        print(response)
+        if not self.error_check(response):
+            print("Signal Completion has failed for " + fileName)
+        else:
+            print(fileName + " upload completed successfully")
         cataloguer.report(batchId, imsOrg, accessToken, apiKey)
+
+    def uploadLarge(self, fileName, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
+        headers = {
+            'Content-Type': 'application/json',
+            'x-gw-ims-org-id': imsOrg,
+            'Authorization': 'Bearer ' + accessToken.getToken(),
+            'x-api-key': apiKey
+        }
+        data = '{ \n          "datasetId": "' + datasetId + '" \n      }'
+        response = requests.post('https://platform.adobe.io/data/foundation/import/batches', headers=headers, data=data)
+        print('Create batch status: ' + response.json()['status'])
+        batchId = response.json()['id']
+        fs = FileSplit(file=fileName, splitsize=256000000, output_dir='Splits/')
+        fs.split(include_header=True)
+        for entry in os.scandir('Splits/'):
+            print(entry.path)
+            headers = {
+                'Content-Type': 'application/octet-stream',
+                'x-gw-ims-org-id': imsOrg,
+                'Authorization': 'Bearer ' + accessToken.getToken(),
+                'x-api-key': apiKey
+            }
+            print('File upload of ' + os.path.basename(entry.path) + ' in progress')
+            data = open(entry.path, 'rb').read()
+            response = requests.put(
+                'https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + datasetId + '/files/' + os.path.basename(entry.path),
+                headers=headers, data=data)
+            print(response)
+            if not self.error_check(response):
+                print(os.path.basename(entry.path) + ' failed to upload')
+                continue
+            os.remove(entry.path)
+
+        headers = {
+            'x-gw-ims-org-id': imsOrg,
+            'Authorization': 'Bearer ' + accessToken.getToken(),
+            'x-api-key': apiKey
+        }
+        params = (
+            ('action', 'COMPLETE'),
+        )
+        print('Signal Completion: ')
+        response = requests.post('https://platform.adobe.io/data/foundation/import/batches/' + batchId,
+                                 headers=headers, params=params)
+        if not self.error_check(response):
+            print("Signal Completion has failed for " + fileName)
+        else:
+            print(fileName + " upload completed Successfully")
+        cataloguer.report(batchId, imsOrg, accessToken, apiKey)
+
+    def error_check(self, response):
+        if response.status_code != 200:
+            print("Error: " + response.status_code)
+            return False
+        return True

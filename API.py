@@ -3,6 +3,8 @@ import json
 import jwt
 import datetime
 import cryptography
+import os
+from bitmath import MiB
 
 from ParameterClasses.AuthToken import AuthToken
 from ParameterClasses.DataSetId import DataSetId
@@ -31,7 +33,7 @@ class API:
         self.datasetIds = self.dataId()
         self.cataloguer = Cataloguer()
         self.ingestor = Ingestor()
-        self.upload('test128.json', self.dID)
+        self.upload('Tests/test128.json', self.dID)
 
     #Sends a report of the status of the batch to the user
     def report(self, identification):
@@ -51,6 +53,9 @@ class API:
             'jwt_token': (None, self.jwtToken),
         }
         testData = requests.post('https://ims-na1.adobelogin.com/ims/exchange/jwt/', files=files)
+        #print(testData.json())
+        if not self.error_checkJson(testData):
+            exit(0)
         name = testData.json()['access_token']
         expiration = testData.json()['expires_in']
         authorization = AuthToken(name, expiration)
@@ -87,14 +92,33 @@ class API:
         )
         response = requests.get('https://platform.adobe.io/data/foundation/catalog/dataSets', headers=headers, params=params)
         ids = []
+        #print(response.json())
+        if not self.error_checkJson(response):
+            exit(0)
         #In order to get a specific datasetID what we could do is iterate through the response and create multiple datasetID objects that way since we can access the key by index since response in an unordered dict
         for id in response.json():
             datasetID = DataSetId(id)
             ids.append(datasetID)
+        realID = False
+        for id in ids:
+            if self.dID == id.getIdentifier():
+                realID = True
+        if realID == False:
+            print("The given datasetID is not found in the datasets tied to this account.")
+            exit(0)
         return ids
 
     #Uploads the file to Experience Platform
     def upload(self, fileName, datasetId):
-        self.ingestor.upload(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
+        if(os.path.getsize(fileName) <= MiB(256).to_Byte()):
+            self.ingestor.upload(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
+        else:
+            self.ingestor.uploadLarge(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
+
+    def error_checkJson(self, response):
+        if response.json().get('error'):
+            print('Error: ' + response.json()['error_description'])
+            return False
+        return True
 
 api = API()
