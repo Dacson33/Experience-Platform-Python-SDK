@@ -33,14 +33,18 @@ class API:
         self.datasetIds = self.dataId()
         self.cataloguer = Cataloguer()
         self.ingestor = Ingestor()
-        self.upload('Tests/test500.json', self.dID)
+        #self.upload('Tests/test500.json', self.dID)
 
     #Sends a report of the status of the batch to the user
     def report(self, identification):
         self.cataloguer.report(identification, self.imsOrg, self.accessToken, self.apiKey)
 
-    def validate(self):
-        pass
+    def validate(self, ids, dataSetID):
+        realID = False
+        for id in ids:
+            if dataSetID == id.getIdentifier():
+                realID = True
+        return realID
 
     def send(self):
         pass
@@ -99,10 +103,7 @@ class API:
         for id in response.json():
             datasetID = DataSetId(id)
             ids.append(datasetID)
-        realID = False
-        for id in ids:
-            if self.dID == id.getIdentifier():
-                realID = True
+        realID = self.validate(ids, self.dID)
         if realID == False:
             print("The given datasetID is not found in the datasets tied to this account.")
             exit(0)
@@ -121,4 +122,5 @@ class API:
             return False
         return True
 
-api = API()
+#api = API()
+#api.upload('Tests/test500.json', api.dID)

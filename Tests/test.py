@@ -1,6 +1,13 @@
 import unittest
 
+from API import API
+
+
 class TestSDK(unittest.TestCase):
+
+    def test_id_validation(self):
+        api = API()
+        self.assertFalse(api.validate(api.datasetIds, "dijf0fhjw0hf0w"))
 
     def test_upper(self):
         self.assertEqual('foo'.upper(), 'FOO')
