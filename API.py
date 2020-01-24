@@ -5,6 +5,7 @@ import datetime
 import cryptography
 import os
 from bitmath import MiB
+import time
 
 from ParameterClasses.AuthToken import AuthToken
 from ParameterClasses.DataSetId import DataSetId
@@ -31,7 +32,8 @@ class API:
         self.jwtToken = jwt.encode(payload, data['secret'], algorithm='RS256').decode('utf-8')
         self.imsOrg = data['ims_org']
         self.accessToken = self.access()
-        self.datasetIds = self.dataId()
+        if not self.validate(self.dID):
+            exit(0)
         self.cataloguer = Cataloguer()
         self.ingestor = Ingestor()
         #self.upload('Tests/test500.json', self.dID)
@@ -40,13 +42,23 @@ class API:
     def report(self, identification):
         self.cataloguer.report(identification, self.imsOrg, self.accessToken, self.apiKey)
 
-    def validate(self, ids, dataSetID):
-        realID = False
-        #print(dataSetID)
-        for id in ids:
-            if dataSetID == id.getIdentifier():
-                realID = True
-        return realID
+    def validate(self, dataSetID):
+        headers = {
+            'Authorization': 'Bearer ' + self.accessToken.getToken(),
+            'x-api-key': self.apiKey,
+            'x-gw-ims-org-id': self.imsOrg,
+        }
+        params = (
+            ('properties', 'name,description,state,tags,files'),
+        )
+        response = requests.get('https://platform.adobe.io/data/foundation/catalog/dataSets/' + dataSetID,
+                                headers=headers, params=params)
+        #print(response.json())
+        if not self.error_checkJson(response):
+            print("The given datasetID is not found in the datasets tied to this account.")
+            return False
+        return True
+
 
     def send(self):
         pass
@@ -106,7 +118,7 @@ class API:
             #print(id)
             datasetID = DataSetId(id)
             ids.append(datasetID)
-        realID = self.validate(ids, self.dID)
+        realID = True
         if realID == False:
             print("The given datasetID is not found in the datasets tied to this account.")
             exit(0)
@@ -123,9 +135,15 @@ class API:
         if response.json().get('error'):
             print('Error: ' + response.json()['error_description'])
             return False
+        if response.json().get('title'):
+            if response.json()['title'] == "NotFoundError":
+                #print('Error: ' + response.json()['detail'])
+                return False
         return True
 
-api = API()
-batch = api.upload('Tests/test128.json', api.dID)
+#api = API()
+#batch = api.upload('Tests/test500.json', api.dID)
 #batch = "f40daf60-3e1e-11ea-aee4-cfeecba20d85"
-api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
+#time.sleep(10)
+#api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
+#api.validate("ldkfhjwopfhwohf")

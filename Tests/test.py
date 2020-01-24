@@ -2,12 +2,19 @@ import unittest
 
 from API import API
 
+api = API()
+
 
 class TestSDK(unittest.TestCase):
 
     def test_id_validation(self):
-        api = API()
-        self.assertFalse(api.validate(api.datasetIds, "dijf0fhjw0hf0w"))
+        self.assertTrue(api.validate(api.dID))
+        self.assertFalse(api.validate("dijf0fhjw0hf0w"))
+
+    def test_upload(self):
+        self.assertIsNotNone(api.upload('test128.json', api.dID))
+        self.assertIsNotNone(api.upload('test256.json', api.dID))
+        self.assertIsNotNone(api.upload('test500.json', api.dID))
 
     def test_upper(self):
         self.assertEqual('foo'.upper(), 'FOO')
