@@ -5,6 +5,7 @@ import datetime
 import cryptography
 import os
 from bitmath import MiB
+import time
 
 from ParameterClasses.AuthToken import AuthToken
 from ParameterClasses.DataSetId import DataSetId
@@ -19,6 +20,7 @@ class API:
         self.apiKey = data['api_key']
         self.clientSecret = data['client_secret']
         self.dID = data['dataID']
+        print(self.dID)
         #Generation of the JWT token
         payload = {
             "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=600),
@@ -30,17 +32,33 @@ class API:
         self.jwtToken = jwt.encode(payload, data['secret'], algorithm='RS256').decode('utf-8')
         self.imsOrg = data['ims_org']
         self.accessToken = self.access()
-        self.datasetIds = self.dataId()
+        if not self.validate(self.dID):
+            exit(0)
         self.cataloguer = Cataloguer()
         self.ingestor = Ingestor()
-        self.upload('Tests/test128.json', self.dID)
+        #self.upload('Tests/test500.json', self.dID)
 
     #Sends a report of the status of the batch to the user
     def report(self, identification):
         self.cataloguer.report(identification, self.imsOrg, self.accessToken, self.apiKey)
 
-    def validate(self):
-        pass
+    def validate(self, dataSetID):
+        headers = {
+            'Authorization': 'Bearer ' + self.accessToken.getToken(),
+            'x-api-key': self.apiKey,
+            'x-gw-ims-org-id': self.imsOrg,
+        }
+        params = (
+            ('properties', 'name,description,state,tags,files'),
+        )
+        response = requests.get('https://platform.adobe.io/data/foundation/catalog/dataSets/' + dataSetID,
+                                headers=headers, params=params)
+        #print(response.json())
+        if not self.error_checkJson(response):
+            print("The given datasetID is not found in the datasets tied to this account.")
+            return False
+        return True
+
 
     def send(self):
         pass
@@ -97,12 +115,10 @@ class API:
             exit(0)
         #In order to get a specific datasetID what we could do is iterate through the response and create multiple datasetID objects that way since we can access the key by index since response in an unordered dict
         for id in response.json():
+            #print(id)
             datasetID = DataSetId(id)
             ids.append(datasetID)
-        realID = False
-        for id in ids:
-            if self.dID == id.getIdentifier():
-                realID = True
+        realID = True
         if realID == False:
             print("The given datasetID is not found in the datasets tied to this account.")
             exit(0)
@@ -111,14 +127,23 @@ class API:
     #Uploads the file to Experience Platform
     def upload(self, fileName, datasetId):
         if(os.path.getsize(fileName) <= MiB(256).to_Byte()):
-            self.ingestor.upload(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
+            return self.ingestor.upload(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
         else:
-            self.ingestor.uploadLarge(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
+            return self.ingestor.uploadLarge(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
 
     def error_checkJson(self, response):
         if response.json().get('error'):
             print('Error: ' + response.json()['error_description'])
             return False
+        if response.json().get('title'):
+            if response.json()['title'] == "NotFoundError":
+                #print('Error: ' + response.json()['detail'])
+                return False
         return True
 
-api = API()
+#api = API()
+#batch = api.upload('Tests/test500.json', api.dID)
+#batch = "f40daf60-3e1e-11ea-aee4-cfeecba20d85"
+#time.sleep(15)
+#api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
+#api.validate("ldkfhjwopfhwohf")
