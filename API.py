@@ -144,6 +144,6 @@ class API:
 #api = API()
 #batch = api.upload('Tests/test500.json', api.dID)
 #batch = "f40daf60-3e1e-11ea-aee4-cfeecba20d85"
-#time.sleep(10)
+#time.sleep(15)
 #api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
 #api.validate("ldkfhjwopfhwohf")
