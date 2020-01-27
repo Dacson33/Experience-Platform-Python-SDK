@@ -37,6 +37,7 @@ class Ingestor(IngestorInterface):
         }
         print('File upload of ' + os.path.basename(fileName) + ' in progress')
         data = open(fileName, 'rb').read()
+        #print(data)
         response = requests.put(
             'https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + datasetId + '/files/' + os.path.basename(
                 fileName), headers=headers, data=data)

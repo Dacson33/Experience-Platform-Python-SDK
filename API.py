@@ -142,8 +142,8 @@ class API:
         return True
 
 api = API()
-#batch = api.upload('Tests/test128.json', api.dID)
-batch = "4cc59190-3f19-11ea-b5a3-c7692e4d1c8a"
-#time.sleep(15)
+batch = api.upload('Tests/test1.json', api.dID)
+#batch = "7948ce50-4138-11ea-9bde-997665cbeb57"
+time.sleep(15)
 api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
 #api.validate("ldkfhjwopfhwohf")

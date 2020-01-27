@@ -14,6 +14,6 @@ class Cataloguer(CataloguerInterface):
             'x-api-key': apiKey
         }
         response = requests.get('https://platform.adobe.io/data/foundation/catalog/batches/' + identification, headers=headers)
-        print(response.json())
+        #print(response.json())
         for idNum in response.json():
             print('Batch Status: ' + response.json()[idNum]['status'])
