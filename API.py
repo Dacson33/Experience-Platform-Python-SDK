@@ -141,9 +141,9 @@ class API:
                 return False
         return True
 
-#api = API()
-#batch = api.upload('Tests/test500.json', api.dID)
-#batch = "f40daf60-3e1e-11ea-aee4-cfeecba20d85"
+api = API()
+#batch = api.upload('Tests/test128.json', api.dID)
+batch = "4cc59190-3f19-11ea-b5a3-c7692e4d1c8a"
 #time.sleep(15)
-#api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
+api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
 #api.validate("ldkfhjwopfhwohf")

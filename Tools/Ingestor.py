@@ -73,14 +73,78 @@ class Ingestor(IngestorInterface):
     def uploadLarge(self, fileName, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
         batchId = self.startBatch(datasetId, imsOrg, accessToken, apiKey)
         fs = FileSplit(file=fileName, splitsize=256000000, output_dir='Splits/')
-        fs.split(include_header=True)
+        #fs.split(include_header=True)
+        fs.split()
+        headers = {
+            'x-gw-ims-org-id': imsOrg,
+            'Authorization': 'Bearer ' + accessToken.getToken(),
+            'x-api-key': apiKey,
+        }
+
+        params = (
+            ('action', 'initialize'),
+        )
+
+        response = requests.post(
+            'https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + datasetId + '/files/' + os.path.basename(
+                fileName),
+            headers=headers, params=params)
+
+        print(response)
+        contentLength = 0
+        contentRange = 0
+        oldLength = 0
         for entry in os.scandir('Splits/'):
-            response = self.sendFile(entry.path, batchId, datasetId, imsOrg, accessToken, apiKey)
+            if contentRange == 0:
+                contentRange = os.path.getsize(entry.path) - 1
+            else:
+                contentRange = contentLength + os.path.getsize(entry.path)-1
+            headers = {
+                'content-type': 'application/octet-stream',
+                'x-gw-ims-org-id': imsOrg,
+                'Authorization': 'Bearer ' + accessToken.getToken(),
+                'x-api-key': apiKey,
+                'Content-Range': 'bytes ' + str(contentLength) + '-' + str(contentRange) + '/' + str(
+                    os.path.getsize(fileName)),
+            }
+            data = open(entry.path, 'rb').read()
+            print(headers)
+            response = requests.patch(
+                'https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + datasetId + '/files/' + os.path.basename(
+                    fileName),
+                headers=headers, data=data)
+            contentLength += (os.path.getsize(entry.path))
+            oldLength += os.path.getsize(entry.path)
+            #contentRange = contentLength + os.path.getsize(entry.path)
+            if response.status_code == 200:
+                print(response)
+            else:
+                print(response.json())
+
+            #response = self.sendFile(entry.path, batchId, datasetId, imsOrg, accessToken, apiKey)
             if not self.error_check(response):
                 print(os.path.basename(entry.path) + ' failed to upload')
                 continue
             os.remove(entry.path)
+        headers = {
+            'x-gw-ims-org-id': imsOrg,
+            'Authorization': 'Bearer ' + accessToken.getToken(),
+            'x-api-key': apiKey,
+        }
+
+        params = (
+            ('action', 'COMPLETE'),
+        )
+
+        response = requests.post(
+            'https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + datasetId + '/files/' + os.path.basename(
+                fileName),
+            headers=headers, params=params)
+        print(response)
         self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
+
+        #self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
+
         return batchId
 
     def error_check(self, response):
