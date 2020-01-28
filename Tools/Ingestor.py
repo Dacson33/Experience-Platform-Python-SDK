@@ -6,6 +6,9 @@ import requests
 import os
 from bitmath import MiB
 from fsplit.filesplit import FileSplit
+#import itertools as it
+from itertools import zip_longest
+import json
 
 class Ingestor(IngestorInterface):
 
@@ -64,7 +67,7 @@ class Ingestor(IngestorInterface):
     def upload(self, fileName, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
         batchId = self.startBatch(datasetId, imsOrg, accessToken, apiKey)
         #Uploads the file
-        response = self.sendFile(fileName, batchId, datasetId, imsOrg, accessToken, apiKey)
+        response = self.sendFile(fileName, fileName, batchId, datasetId, imsOrg, accessToken, apiKey)
         if not self.error_check(response):
             return
         #Signals the completion of the batch
@@ -73,10 +76,11 @@ class Ingestor(IngestorInterface):
 
     def uploadLarge(self, fileName, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
         batchId = self.startBatch(datasetId, imsOrg, accessToken, apiKey)
-        fs = FileSplit(file=fileName, splitsize=256000000, output_dir='Splits/')
+        #fs = FileSplit(file=fileName, splitsize=256000000, output_dir='Splits/')
         #fs.split(include_header=True)
-        fs.split()
-        headers = {
+        #fs.split()
+        self.new_split(fileName)
+        """headers = {
             'x-gw-ims-org-id': imsOrg,
             'Authorization': 'Bearer ' + accessToken.getToken(),
             'x-api-key': apiKey,
@@ -94,9 +98,9 @@ class Ingestor(IngestorInterface):
         print(response)
         contentLength = 0
         contentRange = 0
-        oldLength = 0
+        oldLength = 0"""
         for entry in os.scandir('Splits/'):
-            if contentRange == 0:
+            """if contentRange == 0:
                 contentRange = os.path.getsize(entry.path) - 1
             else:
                 contentRange = contentLength + os.path.getsize(entry.path)-1
@@ -120,14 +124,14 @@ class Ingestor(IngestorInterface):
             if response.status_code == 200:
                 print(response)
             else:
-                print(response.json())
+                print(response.json())"""
 
-            #response = self.sendFile(entry.path, batchId, datasetId, imsOrg, accessToken, apiKey)
+            response = self.sendFile(entry.path, batchId, datasetId, imsOrg, accessToken, apiKey)
             if not self.error_check(response):
                 print(os.path.basename(entry.path) + ' failed to upload')
                 continue
             os.remove(entry.path)
-        headers = {
+        """headers = {
             'x-gw-ims-org-id': imsOrg,
             'Authorization': 'Bearer ' + accessToken.getToken(),
             'x-api-key': apiKey,
@@ -141,7 +145,7 @@ class Ingestor(IngestorInterface):
             'https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + datasetId + '/files/' + os.path.basename(
                 fileName),
             headers=headers, params=params)
-        print(response)
+        print(response)"""
         self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
 
         #self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
@@ -153,3 +157,20 @@ class Ingestor(IngestorInterface):
             print("Error: " + response.status_code)
             return False
         return True
+
+    def grouper(self, iterable, n, fillvalue=None):
+        "Collect data into fixed-length chunks or blocks"
+        # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
+        args = [iter(iterable)] * n
+        return zip_longest(fillvalue=fillvalue, *args)
+
+    def new_split(self, fileName):
+        values = open(fileName, 'rb').read()
+        #values = values.replace('\n', '')
+        #v = values.encode('utf-8')
+        v = json.loads(values)
+        for i, group in enumerate(self.grouper(v, 50000)):
+            with open('Splits/outputbatch_{}.json'.format(i), 'w') as outputfile:
+                json.dump(list(group), outputfile)
+        #for entry in os.scandir('Splits/'):
+            #os.remove(entry.path)

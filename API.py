@@ -20,7 +20,7 @@ class API:
         self.apiKey = data['api_key']
         self.clientSecret = data['client_secret']
         self.dID = data['dataID']
-        print(self.dID)
+        #print(self.dID)
         #Generation of the JWT token
         payload = {
             "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=600),
@@ -142,8 +142,10 @@ class API:
         return True
 
 api = API()
-batch = api.upload('Tests/test1.json', api.dID)
-#batch = "7948ce50-4138-11ea-9bde-997665cbeb57"
-time.sleep(15)
+#batch = api.upload('Tests/test500.json', api.dID)
+batch = "c20f22b0-41fb-11ea-b134-33f1bf2d8f2a"
+#time.sleep(20)
+#print(api.accessToken.getToken())
 api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
 #api.validate("ldkfhjwopfhwohf")
+#api.ingestor.new_split('Tests/test500.json')
