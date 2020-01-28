@@ -142,15 +142,7 @@ class API:
         return True
 
 api = API()
-batch = api.upload('Tests/test500.json', api.dID)
-#batch = "c20f22b0-41fb-11ea-b134-33f1bf2d8f2a"
-#batch = "5aedbd50-41fe-11ea-b134-33f1bf2d8f2a"
-#batch = "982435f0-41fe-11ea-b134-33f1bf2d8f2a"
-#batch = "44391900-41ff-11ea-b134-33f1bf2d8f2a"
-#batch = "d02cbb00-420a-11ea-a443-5dad0869a968"
-#batch = "3e118560-421a-11ea-829a-6bf0786229f4"
+#batch = api.upload('Tests/test500.json', api.dID)
 #time.sleep(20)
-#print(api.accessToken.getToken())
 #api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
-#api.validate("ldkfhjwopfhwohf")
 #api.ingestor.new_split('Tests/test500.json')
