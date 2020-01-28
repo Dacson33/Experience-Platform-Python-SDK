@@ -147,6 +147,7 @@ class Ingestor(IngestorInterface):
             headers=headers, params=params)
         print(response)"""
         self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
+        os.rmdir('Splits/')
 
         #self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
 
@@ -189,6 +190,7 @@ class Ingestor(IngestorInterface):
         #values = values.replace('\n', '')
         #v = values.encode('utf-8')
         v = json.loads(values)
+        os.mkdir('Splits/')
         for i, group in enumerate(self.grouper(v, 150000)):
             with open('Splits/outputbatch_{}.json'.format(i), 'w') as outputfile:
                 json.dump(list(group), outputfile)
