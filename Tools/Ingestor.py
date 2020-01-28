@@ -67,7 +67,7 @@ class Ingestor(IngestorInterface):
     def upload(self, fileName, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
         batchId = self.startBatch(datasetId, imsOrg, accessToken, apiKey)
         #Uploads the file
-        response = self.sendFile(fileName, fileName, batchId, datasetId, imsOrg, accessToken, apiKey)
+        response = self.sendFile(fileName, batchId, datasetId, imsOrg, accessToken, apiKey)
         if not self.error_check(response):
             return
         #Signals the completion of the batch
@@ -158,18 +158,38 @@ class Ingestor(IngestorInterface):
             return False
         return True
 
+    def _one_pass(self, iters):
+        i = 0
+        while i < len(iters):
+            try:
+                yield next(iters[i])
+            except StopIteration:
+                del iters[i]
+            else:
+                i += 1
+
+    def zip_varlen(self, *iterables):
+        iters = [iter(it) for it in iterables]
+        while True:  # broken when an empty tuple is given by _one_pass
+            val = tuple(self._one_pass(iters))
+            if val:
+                yield val
+            else:
+                break
+
     def grouper(self, iterable, n, fillvalue=None):
         "Collect data into fixed-length chunks or blocks"
         # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
         args = [iter(iterable)] * n
-        return zip_longest(fillvalue=fillvalue, *args)
+        #return zip_longest(fillvalue=fillvalue, *args)
+        return self.zip_varlen(*args)
 
     def new_split(self, fileName):
         values = open(fileName, 'rb').read()
         #values = values.replace('\n', '')
         #v = values.encode('utf-8')
         v = json.loads(values)
-        for i, group in enumerate(self.grouper(v, 50000)):
+        for i, group in enumerate(self.grouper(v, 150000)):
             with open('Splits/outputbatch_{}.json'.format(i), 'w') as outputfile:
                 json.dump(list(group), outputfile)
         #for entry in os.scandir('Splits/'):
