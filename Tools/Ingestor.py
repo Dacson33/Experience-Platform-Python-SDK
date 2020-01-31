@@ -121,7 +121,7 @@ class Ingestor(IngestorInterface):
         #v = values.encode('utf-8')
         v = json.loads(values)
         os.mkdir('Splits/')
-        for i, group in enumerate(self.grouper(v, 150000)):
+        for i, group in enumerate(self.grouper(v, 125000)):
             with open('Splits/outputbatch_{}.json'.format(i), 'w') as outputfile:
                 json.dump(list(group), outputfile)
         #for entry in os.scandir('Splits/'):

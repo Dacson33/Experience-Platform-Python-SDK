@@ -141,7 +141,7 @@ class API:
                 return False
         return True
 
-api = API()
+#api = API()
 #batch = api.upload('Tests/test500.json', api.dID)
 #time.sleep(20)
 #api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
