@@ -192,7 +192,7 @@ class API:
 
 #api = API('config.json')
 #print(api.validate(""))
-#batch = api.upload('Tests/test256.json', api.dID)
+#batch = api.upload('Tests/testError.json', api.dID)
 #time.sleep(20)
 #api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
 #api.ingestor.new_split('Tests/test500.json')

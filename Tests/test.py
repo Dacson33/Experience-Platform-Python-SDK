@@ -27,15 +27,19 @@ class TestSDK(unittest.TestCase):
 
     @unittest.skipUnless(testUpload128, "Skip if false")
     def test_upload_128(self):
-        self.assertEquals(self.api.upload('test128.json', self.api.dID), "success")
+        self.assertEqual(self.api.upload('test128.json', self.api.dID), "success")
 
     @unittest.skipUnless(testUpload256, "Skip if false")
     def test_upload_256(self):
-        self.assertEquals(self.api.upload('test256.json', self.api.dID), "success")
+        self.assertEqual(self.api.upload('test256.json', self.api.dID), "success")
 
     @unittest.skipUnless(testUpload500, "Skip if false")
     def test_upload_large(self):
-        self.assertEquals(self.api.upload('test500.json', self.api.dID), "success")
+        self.assertEqual(self.api.upload('test500.json', self.api.dID), "success")
+
+    @unittest.skipUnless(testUploadError, "Skip if false")
+    def test_upload_error(self):
+        self.assertEqual(self.api.upload('testError.json', self.api.dID), "failure")
 
 if __name__ == '__main__':
     unittest.main()

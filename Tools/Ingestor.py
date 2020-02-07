@@ -118,7 +118,9 @@ class Ingestor(IngestorInterface):
         return self.zip_varlen(*args)
 
     def new_split(self, fileName):
-        values = open(fileName, 'rb').read()
+        file = open(fileName, 'rb')
+        values = file.read()
+        file.close()
         #values = values.replace('\n', '')
         #v = values.encode('utf-8')
         v = json.loads(values)
