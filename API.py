@@ -43,6 +43,9 @@ class API:
         self.cataloguer.report(identification, self.imsOrg, self.accessToken, self.apiKey)
 
     def validate(self, dataSetID):
+        if dataSetID == "":
+            print("You need to enter a DataSetID.")
+            return False
         headers = {
             'Authorization': 'Bearer ' + self.accessToken.getToken(),
             'x-api-key': self.apiKey,
@@ -77,6 +80,8 @@ class API:
         name = testData.json()['access_token']
         expiration = testData.json()['expires_in']
         authorization = AuthToken(name, expiration)
+        #print(authorization.getToken())
+        #print(authorization.getExpiration())
         return authorization
 
     def sandboxName(self):
@@ -142,6 +147,7 @@ class API:
         return True
 
 #api = API()
+#print(api.validate(""))
 #batch = api.upload('Tests/test500.json', api.dID)
 #time.sleep(20)
 #api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
