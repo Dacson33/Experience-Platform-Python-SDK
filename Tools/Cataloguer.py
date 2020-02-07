@@ -1,5 +1,6 @@
 from Interfaces.CataloguerInterface import CataloguerInterface
 import requests
+import time
 
 
 class Cataloguer(CataloguerInterface):
@@ -13,7 +14,20 @@ class Cataloguer(CataloguerInterface):
             'Authorization': 'Bearer ' + accessToken.getToken(),
             'x-api-key': apiKey
         }
-        response = requests.get('https://platform.adobe.io/data/foundation/catalog/batches/' + identification, headers=headers)
-        print(response.json())
+        #response = requests.get('https://platform.adobe.io/data/foundation/catalog/batches/' + identification, headers=headers)
+        #print(response.json())
+        finished = False
+        while not finished:
+            time.sleep(5)
+            response = requests.get('https://platform.adobe.io/data/foundation/catalog/batches/' + identification,
+                                    headers=headers)
+            finished = False
+            for idNum in response.json():
+                if response.json()[idNum]['status'] == "loaded" or response.json()[idNum]['status'] == "loading" or response.json()[idNum]['status'] == "staging":
+                    continue
+                else:
+                    finished = True
+                    break
         for idNum in response.json():
             print('Batch Status: ' + response.json()[idNum]['status'])
+            return response.json()[idNum]['status']

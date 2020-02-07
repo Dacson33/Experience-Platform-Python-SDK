@@ -14,29 +14,68 @@ from Tools.Ingestor import Ingestor
 
 class API:
 
-    def __init__(self):
-        with open('config.json') as json_data_file:
-            data = json.load(json_data_file)
-        self.apiKey = data['api_key']
-        self.clientSecret = data['client_secret']
-        self.dID = data['dataID']
-        #print(self.dID)
+    def __init__(self, configFile):
+        if not self.initConfig(configFile):
+            print("Bad config file")
+            exit(0)
         #Generation of the JWT token
         payload = {
             "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=600),
-            "iss": data['ims_org'],
-            "sub": data['sub'],
+            "iss": self.imsOrg,
+            "sub": self.sub,
             "https://ims-na1.adobelogin.com/s/ent_dataservices_sdk": True,
-            "aud": 'https://ims-na1.adobelogin.com/c/' + data['api_key']
+            "aud": self.aud
         }
-        self.jwtToken = jwt.encode(payload, data['secret'], algorithm='RS256').decode('utf-8')
-        self.imsOrg = data['ims_org']
+        self.jwtToken = jwt.encode(payload, self.secret, algorithm='RS256').decode('utf-8')
+        #self.imsOrg = data['ims_org']
         self.accessToken = self.access()
+        #self.accessToken = AuthToken("eyJ4NXUiOiJpbXNfbmExLWtleS0xLmNlciIsImFsZyI6IlJTMjU2In0.eyJpZCI6IjE1ODA3NTU5MzM0OTFfNTM3ZDZiYWQtNmJjOS00YWFjLWEwZTktMDEzM2YyOTFiNzYxX3VlMSIsImNsaWVudF9pZCI6ImQ4YjY1Y2E3NWVlNDRiOGNhOWJmODdiNmZkYzBhMTc0IiwidXNlcl9pZCI6IkQ5Q0I3OEEyNURBRTE0QkMwQTQ5NUMyMUB0ZWNoYWNjdC5hZG9iZS5jb20iLCJzdGF0ZSI6IntcInNlc3Npb25cIjpcImh0dHBzOi8vaW1zLW5hMS5hZG9iZWxvZ2luLmNvbS9pbXMvc2Vzc2lvbi92MS9aakExT1daak1Ea3RabU5tWmkwME1qTTFMV0V5WkRRdFlqUmlNREV3TnpOalpXTTBMUzFFT1VOQ056aEJNalZFUVVVeE5FSkRNRUUwT1RWRE1qRkFkR1ZqYUdGalkzUXVZV1J2WW1VdVkyOXRcIn0iLCJ0eXBlIjoiYWNjZXNzX3Rva2VuIiwiYXMiOiJpbXMtbmExIiwiZmciOiJVRkFLWUpFMkhQRTVKUFVQRzZBTFlQUUFEVT09PT09PSIsIm1vaSI6IjU0YmVlZjg3IiwiYyI6IlRrZnhXK3dwRStzZk9TbGc1RlZITlE9PSIsImV4cGlyZXNfaW4iOiI4NjQwMDAwMCIsInNjb3BlIjoib3BlbmlkLHNlc3Npb24sQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0IiwiY3JlYXRlZF9hdCI6IjE1ODA3NTU5MzM0OTEifQ.psJCN3iFkzMx9bgkQBB4cDBHzvuHK6eLT146iw1z-89kf0m0iPqshJuX3ddToUWp3hXEbZWkr9Ta1BezbjTvSnpgtYbNFAs4M2mYnVHpzqCgJQxI41JzQKHAqj94_dHNJIWvHJERnME1L9dX0DHSmFSTSZVwOUZWT7HFdZg-2wPTG4wY3VRVmiwVmmW3lQAJ5aL6N7O1rWUqEEb9tXHM9UJSKeFTdlsmyAX_MV9TK9-zB5kDpkhMK41rQiwUVWzCkB1gawJPutweGv5GiUieOOlwLz0GfD5oH5aoA8FYXt9_hFziQPP55yVoxbYWuOPFMiqRBWmL_zbne8D4Kn7Uwg", "07907987979", "0")
         if not self.validate(self.dID):
             exit(0)
         self.cataloguer = Cataloguer()
         self.ingestor = Ingestor()
         #self.upload('Tests/test500.json', self.dID)
+
+    def initConfig(self, configFile):
+        with open(configFile) as json_data_file:
+            data = json.load(json_data_file)
+        if not data.get('api_key'):
+            return False
+        self.apiKey = data['api_key']
+        if not self.checkNull(self.apiKey):
+            return False
+        if not data.get('client_secret'):
+            return False
+        self.clientSecret = data['client_secret']
+        if not self.checkNull(self.clientSecret):
+            return False
+        if not data.get('dataID'):
+            return False
+        self.dID = data['dataID']
+        if not self.checkNull(self.dID):
+            return False
+        if not data.get('ims_org'):
+            return False
+        self.imsOrg = data['ims_org']
+        if not self.checkNull(self.imsOrg):
+            return False
+        if not data.get('sub'):
+            return False
+        self.sub = data['sub']
+        if not self.checkNull(self.sub):
+            return False
+        if not data.get('secret'):
+            return False
+        self.secret = data['secret']
+        if not self.checkNull(self.secret):
+            return False
+        self.aud = 'https://ims-na1.adobelogin.com/c/' + self.apiKey
+        return True
+
+    def checkNull(self, obj):
+        if obj == None or obj == "":
+            return False
+        return True
 
     #Sends a report of the status of the batch to the user
     def report(self, identification):
@@ -58,7 +97,7 @@ class API:
                                 headers=headers, params=params)
         #print(response.json())
         if not self.error_checkJson(response):
-            print("The given datasetID is not found in the datasets tied to this account.")
+            #print("The given datasetID is not found in the datasets tied to this account.")
             return False
         return True
 
@@ -79,9 +118,11 @@ class API:
             exit(0)
         name = testData.json()['access_token']
         expiration = testData.json()['expires_in']
-        authorization = AuthToken(name, expiration)
+        expirationDate = datetime.datetime.utcnow() + datetime.timedelta(milliseconds=expiration - 1000)
+        authorization = AuthToken(name, expiration, expirationDate)
         #print(authorization.getToken())
         #print(authorization.getExpiration())
+        #print(authorization.getExpirationDate())
         return authorization
 
     def sandboxName(self):
@@ -140,15 +181,18 @@ class API:
         if response.json().get('error'):
             print('Error: ' + response.json()['error_description'])
             return False
+        if response.json().get('error_code'):
+            print('Error: ' + response.json()['message'])
+            return False
         if response.json().get('title'):
             if response.json()['title'] == "NotFoundError":
-                #print('Error: ' + response.json()['detail'])
+                print('Error: ' + response.json()['detail'])
                 return False
         return True
 
-#api = API()
+#api = API('config.json')
 #print(api.validate(""))
-#batch = api.upload('Tests/test500.json', api.dID)
+#batch = api.upload('Tests/test256.json', api.dID)
 #time.sleep(20)
 #api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
 #api.ingestor.new_split('Tests/test500.json')

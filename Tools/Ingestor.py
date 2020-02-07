@@ -35,7 +35,9 @@ class Ingestor(IngestorInterface):
             'x-api-key': apiKey
         }
         print('File upload of ' + os.path.basename(fileName) + ' in progress')
-        data = open(fileName, 'rb').read()
+        file = open(fileName, 'rb')
+        data = file.read()
+        file.close()
         #print(data)
         response = requests.put(
             'https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + datasetId + '/files/' + os.path.basename(
@@ -58,7 +60,7 @@ class Ingestor(IngestorInterface):
             print("Signal Completion has failed for " + fileName)
         else:
             print(fileName + " upload completed successfully")
-        cataloguer.report(batchId, imsOrg, accessToken, apiKey)
+        return cataloguer.report(batchId, imsOrg, accessToken, apiKey)
 
     def upload(self, fileName, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
         batchId = self.startBatch(datasetId, imsOrg, accessToken, apiKey)
@@ -67,8 +69,8 @@ class Ingestor(IngestorInterface):
         if not self.error_check(response):
             return
         #Signals the completion of the batch
-        self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
-        return batchId
+        return self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
+        #return batchId
 
     def uploadLarge(self, fileName, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
         batchId = self.startBatch(datasetId, imsOrg, accessToken, apiKey)
@@ -79,9 +81,9 @@ class Ingestor(IngestorInterface):
                 print(os.path.basename(entry.path) + ' failed to upload')
                 continue
             os.remove(entry.path)
-        self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
         os.rmdir('Splits/')
-        return batchId
+        return self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
+        #return batchId
 
     def error_check(self, response):
         if response.status_code != 200:
