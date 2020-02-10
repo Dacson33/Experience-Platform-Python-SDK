@@ -25,19 +25,19 @@ class TestSDK(unittest.TestCase):
         self.assertFalse(self.api.validate("dijf0fhjw0hf0w"))
         self.assertFalse(self.api.validate(""))
 
-    @unittest.skipUnless(testUpload128, "Skip if false")
+    @unittest.skipUnless(testUpload128, "Not currently testing")
     def test_upload_128(self):
         self.assertEqual(self.api.upload('test128.json', self.api.dID), "success")
 
-    @unittest.skipUnless(testUpload256, "Skip if false")
+    @unittest.skipUnless(testUpload256, "Not currently testing")
     def test_upload_256(self):
         self.assertEqual(self.api.upload('test256.json', self.api.dID), "success")
 
-    @unittest.skipUnless(testUpload500, "Skip if false")
+    @unittest.skipUnless(testUpload500, "Not currently testing")
     def test_upload_large(self):
         self.assertEqual(self.api.upload('test500.json', self.api.dID), "success")
 
-    @unittest.skipUnless(testUploadError, "Skip if false")
+    @unittest.skipUnless(testUploadError, "Not currently testing")
     def test_upload_error(self):
         self.assertEqual(self.api.upload('testError.json', self.api.dID), "failure")
 
