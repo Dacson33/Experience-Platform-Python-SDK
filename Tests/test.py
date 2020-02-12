@@ -13,6 +13,7 @@ class TestSDK(unittest.TestCase):
     testMultipleFilesFailure = False
     testMultipleFilesSuccessLarge = False
     testMultipleFilesFailureLarge = False
+    testUploadAll = False
 
     def setUp(self):
         self.api = API('config.json')
@@ -60,6 +61,10 @@ class TestSDK(unittest.TestCase):
     @unittest.skipUnless(testMultipleFilesFailureLarge, "Not currently testing")
     def test_upload_multiple_failure_large(self):
         self.assertEqual(self.api.upload(['test500.json', 'testError.json'], self.api.dID), "failure")
+
+    @unittest.skipUnless(testUploadAll, "Not currently testing")
+    def test_upload_all(self):
+        self.assertEqual(self.api.upload(['test128.json', 'test256.json', 'test500.json'], self.api.dID), "success")
 
 if __name__ == '__main__':
     unittest.main()
