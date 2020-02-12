@@ -171,11 +171,16 @@ class API:
         return ids
 
     #Uploads the file to Experience Platform
-    def upload(self, fileName, datasetId):
-        if(os.path.getsize(fileName) <= MiB(256).to_Byte()):
-            return self.ingestor.upload(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
-        else:
-            return self.ingestor.uploadLarge(fileName, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
+    def upload(self, files, datasetId):
+        if not self.validate(datasetId):
+            exit(0)
+        batchId = self.ingestor.startBatch(datasetId, self.imsOrg, self.accessToken, self.apiKey)
+        for fileName in files:
+            if(os.path.getsize(fileName) <= MiB(256).to_Byte()):
+                self.ingestor.upload(fileName, batchId, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
+            else:
+                self.ingestor.uploadLarge(fileName, batchId, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
+        return self.ingestor.finishUpload(batchId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
 
     def error_checkJson(self, response):
         if response.json().get('error'):
@@ -191,6 +196,7 @@ class API:
         return True
 
 #api = API('config.json')
+#api.upload(['Tests/test1.json', 'Tests/test128.json'], api.dID)
 #print(api.validate(""))
 #batch = api.upload('Tests/testError.json', api.dID)
 #time.sleep(20)
