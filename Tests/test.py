@@ -5,15 +5,15 @@ from ParameterClasses.AuthToken import AuthToken
 
 class TestSDK(unittest.TestCase):
 
-    testUpload128 = False
-    testUpload256 = False
-    testUpload500 = False
-    testUploadError = False
-    testMultipleFilesSuccess = False
-    testMultipleFilesFailure = False
-    testMultipleFilesSuccessLarge = False
-    testMultipleFilesFailureLarge = False
-    testUploadAll = False
+    testUpload128 = True
+    testUpload256 = True
+    testUpload500 = True
+    testUploadError = True
+    testMultipleFilesSuccess = True
+    testMultipleFilesFailure = True
+    testMultipleFilesSuccessLarge = True
+    testMultipleFilesFailureLarge = True
+    testUploadAll = True
 
     def setUp(self):
         self.api = API('config.json')
