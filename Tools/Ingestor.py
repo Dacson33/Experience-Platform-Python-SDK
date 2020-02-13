@@ -44,7 +44,7 @@ class Ingestor(IngestorInterface):
                 fileName), headers=headers, data=data)
         return response
 
-    def finishUpload(self, fileName, batchId, imsOrg, accessToken: AuthToken, apiKey, cataloguer):
+    def finishUpload(self, batchId, imsOrg, accessToken: AuthToken, apiKey, cataloguer):
         headers = {
             'x-gw-ims-org-id': imsOrg,
             'Authorization': 'Bearer ' + accessToken.getToken(),
@@ -57,23 +57,23 @@ class Ingestor(IngestorInterface):
         response = requests.post('https://platform.adobe.io/data/foundation/import/batches/' + batchId, headers=headers,
                                  params=params)
         if not self.error_check(response):
-            print("Signal Completion has failed for " + fileName)
+            print("Signal Completion has failed for " + batchId)
         else:
-            print(fileName + " upload completed successfully")
+            print(batchId + " upload completed successfully")
         return cataloguer.report(batchId, imsOrg, accessToken, apiKey)
 
-    def upload(self, fileName, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
-        batchId = self.startBatch(datasetId, imsOrg, accessToken, apiKey)
+    def upload(self, fileName, batchId, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
+        #batchId = self.startBatch(datasetId, imsOrg, accessToken, apiKey)
         #Uploads the file
         response = self.sendFile(fileName, batchId, datasetId, imsOrg, accessToken, apiKey)
         if not self.error_check(response):
             return
         #Signals the completion of the batch
-        return self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
+        #return self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
         #return batchId
 
-    def uploadLarge(self, fileName, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
-        batchId = self.startBatch(datasetId, imsOrg, accessToken, apiKey)
+    def uploadLarge(self, fileName, batchId, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
+        #batchId = self.startBatch(datasetId, imsOrg, accessToken, apiKey)
         self.new_split(fileName)
         for entry in os.scandir('Splits/'):
             response = self.sendFile(entry.path, batchId, datasetId, imsOrg, accessToken, apiKey)
@@ -82,7 +82,7 @@ class Ingestor(IngestorInterface):
                 continue
             os.remove(entry.path)
         os.rmdir('Splits/')
-        return self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
+        #return self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
         #return batchId
 
     def error_check(self, response):
