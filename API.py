@@ -37,6 +37,15 @@ class API:
         #self.upload('Tests/test500.json', self.dID)
 
     def initConfig(self, configFile):
+        """A function that initializes the config file and checks it for errors.
+
+        Args:
+            configFile (str): The full name and path of the config file
+
+        Returns:
+            bool: A boolean stating if the config was successfully initialized or not
+        """
+
         with open(configFile) as json_data_file:
             data = json.load(json_data_file)
         if not data.get('api_key'):
@@ -73,6 +82,14 @@ class API:
         return True
 
     def checkNull(self, obj):
+        """A simple check to see if an object from the config json file is not null or an empty string.
+
+        Args:
+            obj (str): The string object from the config json.
+
+        Returns:
+            bool: A boolean stating if the object was null/empty or not."""
+
         if obj == None or obj == "":
             return False
         return True
@@ -82,6 +99,14 @@ class API:
         self.cataloguer.report(identification, self.imsOrg, self.accessToken, self.apiKey)
 
     def validate(self, dataSetID):
+        """A function that checks if a given dataset ID exists for the current account.
+
+        Args:
+            dataSetID (str): The dataset ID passed in by the user.
+
+        Returns:
+            bool: A boolean stating whether the dataset ID exists on the current account."""
+
         if dataSetID == "":
             print("You need to enter a DataSetID.")
             return False
@@ -107,6 +132,13 @@ class API:
 
     #Generates the AuthToken for use with the API
     def access(self):
+        """A function that generates and Auth Token for the current user.
+
+        Returns:
+            AuthToken: An AuthToken object which is valid authorization token for the current user that will last for 24
+            hours.
+        """
+
         files = {
             'client_id': (None, self.apiKey),
             'client_secret': (None, self.clientSecret),
@@ -172,6 +204,16 @@ class API:
 
     #Uploads the file to Experience Platform
     def upload(self, files, datasetId):
+        """A function which uploads the given files to the given dataset ID using the ingestor.
+
+        Args:
+            files (list): A list of strings which are the full path and names of the files being uploaded.
+            datasetId (str): The dataset ID that is being uploaded to.
+
+        Returns:
+            str: A string of the response from the Experience platform stating whether a batch succeeded or failed.
+        """
+
         if not self.validate(datasetId):
             exit(0)
         batchId = self.ingestor.startBatch(datasetId, self.imsOrg, self.accessToken, self.apiKey)
@@ -183,6 +225,15 @@ class API:
         return self.ingestor.finishUpload(batchId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
 
     def error_checkJson(self, response):
+        """A function which checks the given response object for errors and prints what those errors are.
+
+        Args:
+            response (Response): A Response object from the requests library.
+
+        Returns:
+            bool: A boolean stating whether there was an error in the request or not.
+        """
+
         if response.json().get('error'):
             print('Error: ' + response.json()['error_description'])
             return False
