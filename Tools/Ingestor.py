@@ -7,6 +7,7 @@ import os
 import json
 
 class Ingestor(IngestorInterface):
+    """An object that handles the uploading of files to the Adobe Experience Platform."""
 
     def __init__(self):
         pass

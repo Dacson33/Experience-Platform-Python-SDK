@@ -4,6 +4,7 @@ import time
 
 
 class Cataloguer(CataloguerInterface):
+    """An object that handles the reporting from the Adobe Experience Platform."""
 
     def __init__(self):
         pass

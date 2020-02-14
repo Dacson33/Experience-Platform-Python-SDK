@@ -13,6 +13,20 @@ from Tools.Cataloguer import Cataloguer
 from Tools.Ingestor import Ingestor
 
 class API:
+    """The handler for the entire SDK.
+
+    Attributes:
+        apiKey (str): The user's API Key for the Adobe Experience Platform.
+        clientSecret (str): The client_secret id of the user.
+        imsOrg (str): The IMS Organization email of the user.
+        sub (str): The user's Technical Account id for Adobe I/O.
+        secret (str): The user's secret key used for the creation of JWT tokens.
+        aud (str): The audience for the JWT token.
+        jwtToken (str): The current JWT token.
+        accessToken (AuthToken): The user's current active authorization token.
+        cataloguer (Cataloguer): A Cataloguer object used for reporting.
+        ingestor (Ingestor): An Ingestor object used for the handling of uploading files.
+    """
 
     def __init__(self, configFile):
         if not self.initConfig(configFile):
