@@ -14,6 +14,18 @@ class Ingestor(IngestorInterface):
 #    def upload(self, file, schema:Schema, dataSetID:DataSetId, authToken:AuthToken):
 #        pass
     def startBatch(self, datasetId, imsOrg, accessToken: AuthToken, apiKey):
+        """A function that creates the batch that the files will upload to.
+
+        Args:
+            datasetId (str): The string that is the dataset ID that is being uploaded to.
+            imsOrg (str): The IMS Organization email of the user.
+            accessToken (AuthToken): The user's current active authorization token.
+            apiKey (str): The user's API Key for the Adobe Experience Platform.
+
+        Returns:
+            str: A string that is the id of the batch that has just been created.
+        """
+
         headers = {
             'Content-Type': 'application/json',
             'x-gw-ims-org-id': imsOrg,
@@ -28,6 +40,20 @@ class Ingestor(IngestorInterface):
         return batchId
 
     def sendFile(self, fileName, batchId, datasetId, imsOrg, accessToken: AuthToken, apiKey):
+        """A function that sends the file to a batch to be uploaded.
+
+        Args:
+            fileName (str): The full name and path of the file to be uploaded.
+            batchId (str): The id of the batch that the file is being sent to.
+            datasetId (str): The id of the dataset that is being uploaded to.
+            imsOrg (str): The IMS Organization email of the user.
+            accessToken (AuthToken): The user's current active authorization token.
+            apiKey (str): The user's API Key for the Adobe Experience Platform.
+
+        Returns:
+            Response: The response object give by the put request to the Adobe Experience Platform.
+        """
+
         headers = {
             'Content-Type': 'application/octet-stream',
             'x-gw-ims-org-id': imsOrg,
@@ -45,6 +71,19 @@ class Ingestor(IngestorInterface):
         return response
 
     def finishUpload(self, batchId, imsOrg, accessToken: AuthToken, apiKey, cataloguer):
+        """A function that signals the completion of the batch.
+
+        Args:
+            batchId (str): The id of the batch currently being uploaded.
+            imsOrg (str): The IMS Organization email of the user.
+            accessToken (AuthToken): The user's current active authorization token.
+            apiKey (str): The user's API Key for the Adobe Experience Platform.
+            cataloguer (Cataloguer): A Cataloguer object used for reporting the batch status.
+
+        Returns:
+            str: The string of the batch status given by the cataloguer's report function.
+        """
+
         headers = {
             'x-gw-ims-org-id': imsOrg,
             'Authorization': 'Bearer ' + accessToken.getToken(),
@@ -63,6 +102,17 @@ class Ingestor(IngestorInterface):
         return cataloguer.report(batchId, imsOrg, accessToken, apiKey)
 
     def upload(self, fileName, batchId, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
+        """A function that handles the uploading of files of sizes less than or equal to 256MB.
+
+        Args:
+            fileName (str): The full name and path of the file being uploaded.
+            batchId (str): The id of the batch that is being used.
+            datasetId (str): The id of the dataset that is being uploaded to.
+            imsOrg (str): The IMS Organization email of the user.
+            accessToken (AuthToken): The user's current active authorization token.
+            apiKey (str): The user's API Key for the Adobe Experience Platform.
+        """
+
         #batchId = self.startBatch(datasetId, imsOrg, accessToken, apiKey)
         #Uploads the file
         response = self.sendFile(fileName, batchId, datasetId, imsOrg, accessToken, apiKey)
@@ -73,6 +123,17 @@ class Ingestor(IngestorInterface):
         #return batchId
 
     def uploadLarge(self, fileName, batchId, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
+        """A function that handles the uploading of files of sizes greater than 256MB.
+
+        Args:
+            fileName (str): The full name and path of the file being uploaded.
+            batchId (str): The id of the batch that is being used.
+            datasetId (str): The id of the dataset that is being uploaded to.
+            imsOrg (str): The IMS Organization email of the user.
+            accessToken (AuthToken): The user's current active authorization token.
+            apiKey (str): The user's API Key for the Adobe Experience Platform.
+        """
+
         #batchId = self.startBatch(datasetId, imsOrg, accessToken, apiKey)
         self.new_split(fileName)
         for entry in os.scandir('Splits/'):
@@ -86,6 +147,15 @@ class Ingestor(IngestorInterface):
         #return batchId
 
     def error_check(self, response):
+        """A function that checks if a response object gave an error code.
+
+        Args:
+            response (Response): A response object from the requests library.
+
+        Returns:
+            bool: A boolean stating whether there was an error code or not.
+        """
+
         if response.status_code != 200:
             print("Error: " + response.status_code)
             return False
@@ -118,6 +188,12 @@ class Ingestor(IngestorInterface):
         return self.zip_varlen(*args)
 
     def new_split(self, fileName):
+        """A function that splits up JSON files of sizes greater than 256MB.
+
+        Args:
+            fileName: The full name and path of the file being split.
+        """
+
         file = open(fileName, 'rb')
         values = file.read()
         file.close()

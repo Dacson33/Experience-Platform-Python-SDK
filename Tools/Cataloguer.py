@@ -9,6 +9,17 @@ class Cataloguer(CataloguerInterface):
         pass
 
     def report(self, identification, imsOrg, accessToken, apiKey):
+        """A function that checks and sends back the status of a batch.
+
+        Args:
+            identification (str): The id of the batch that is being checked.
+            imsOrg (str): The IMS Organization email of the user.
+            apiKey (str): The user's API Key for the Adobe Experience Platform.
+
+        Returns:
+            str: A string that is the status of the given batch.
+        """
+
         headers = {
             'x-gw-ims-org-id': imsOrg,
             'Authorization': 'Bearer ' + accessToken.getToken(),
