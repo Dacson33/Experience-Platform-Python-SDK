@@ -15,6 +15,7 @@ class Cataloguer(CataloguerInterface):
         Args:
             identification (str): The id of the batch that is being checked.
             imsOrg (str): The IMS Organization email of the user.
+            accessToken (AuthToken): The user's current active authorization token.
             apiKey (str): The user's API Key for the Adobe Experience Platform.
 
         Returns:
