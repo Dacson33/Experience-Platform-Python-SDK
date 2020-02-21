@@ -8,27 +8,49 @@ from bitmath import MiB
 #import time
 
 from ParameterClasses.AuthToken import AuthToken
-from ParameterClasses.DataSetId import DataSetId
 from Tools.Cataloguer import Cataloguer
 from Tools.Ingestor import Ingestor
 
 class API:
-    """The handler for the entire SDK.
+    """
+    The handler for the entire SDK.
 
     Attributes:
+        accessToken (AuthToken): The user's current active authorization token.
         apiKey (str): The user's API Key for the Adobe Experience Platform.
+        aud (str): The audience for the JWT token.
+        cataloguer (Cataloguer): A Cataloguer object used for reporting.
         clientSecret (str): The client_secret id of the user.
         imsOrg (str): The IMS Organization email of the user.
-        sub (str): The user's Technical Account id for Adobe I/O.
-        secret (str): The user's secret key used for the creation of JWT tokens.
-        aud (str): The audience for the JWT token.
-        jwtToken (str): The current JWT token.
-        accessToken (AuthToken): The user's current active authorization token.
-        cataloguer (Cataloguer): A Cataloguer object used for reporting.
         ingestor (Ingestor): An Ingestor object used for the handling of uploading files.
+        jwtToken (str): The current JWT token.
+        secret (str): The user's secret key used for the creation of JWT tokens.
+        sub (str): The user's Technical Account id for Adobe I/O.
+
+    Quick Methods:
+        access(self):
+            A function that generates and Auth Token for the current user.
+        dataId(self):
+            A function that queries and returns a list of datasets that are assigned to the current user.
+        initConfig(self, configFile):
+            A function that initializes the config file and checks it for errors.
+        report(self, identification):
+            Runs the cataloguer report function, which will wait until the batch finishes loading before printing the batch status.
+        sandboxName(self):
+            A function that requests and returns a sandbox ID.
+        upload(self, files, datasetId):
+            A function which uploads the given files to the given dataset ID using the ingestor.
+        validate(self, dataSetID):
+            A function that checks if a given dataset ID exists for the current account.
     """
 
     def __init__(self, configFile):
+        """
+        Constructs all the necessary attributes for an API object.
+
+        Args:
+            configFile (str): The full name and path of the config file.
+        """
         if not self.initConfig(configFile):
             print("Bad config file")
             exit(0)
@@ -44,20 +66,21 @@ class API:
         #self.imsOrg = data['ims_org']
         self.accessToken = self.access()
         #self.accessToken = AuthToken("eyJ4NXUiOiJpbXNfbmExLWtleS0xLmNlciIsImFsZyI6IlJTMjU2In0.eyJpZCI6IjE1ODA3NTU5MzM0OTFfNTM3ZDZiYWQtNmJjOS00YWFjLWEwZTktMDEzM2YyOTFiNzYxX3VlMSIsImNsaWVudF9pZCI6ImQ4YjY1Y2E3NWVlNDRiOGNhOWJmODdiNmZkYzBhMTc0IiwidXNlcl9pZCI6IkQ5Q0I3OEEyNURBRTE0QkMwQTQ5NUMyMUB0ZWNoYWNjdC5hZG9iZS5jb20iLCJzdGF0ZSI6IntcInNlc3Npb25cIjpcImh0dHBzOi8vaW1zLW5hMS5hZG9iZWxvZ2luLmNvbS9pbXMvc2Vzc2lvbi92MS9aakExT1daak1Ea3RabU5tWmkwME1qTTFMV0V5WkRRdFlqUmlNREV3TnpOalpXTTBMUzFFT1VOQ056aEJNalZFUVVVeE5FSkRNRUUwT1RWRE1qRkFkR1ZqYUdGalkzUXVZV1J2WW1VdVkyOXRcIn0iLCJ0eXBlIjoiYWNjZXNzX3Rva2VuIiwiYXMiOiJpbXMtbmExIiwiZmciOiJVRkFLWUpFMkhQRTVKUFVQRzZBTFlQUUFEVT09PT09PSIsIm1vaSI6IjU0YmVlZjg3IiwiYyI6IlRrZnhXK3dwRStzZk9TbGc1RlZITlE9PSIsImV4cGlyZXNfaW4iOiI4NjQwMDAwMCIsInNjb3BlIjoib3BlbmlkLHNlc3Npb24sQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0IiwiY3JlYXRlZF9hdCI6IjE1ODA3NTU5MzM0OTEifQ.psJCN3iFkzMx9bgkQBB4cDBHzvuHK6eLT146iw1z-89kf0m0iPqshJuX3ddToUWp3hXEbZWkr9Ta1BezbjTvSnpgtYbNFAs4M2mYnVHpzqCgJQxI41JzQKHAqj94_dHNJIWvHJERnME1L9dX0DHSmFSTSZVwOUZWT7HFdZg-2wPTG4wY3VRVmiwVmmW3lQAJ5aL6N7O1rWUqEEb9tXHM9UJSKeFTdlsmyAX_MV9TK9-zB5kDpkhMK41rQiwUVWzCkB1gawJPutweGv5GiUieOOlwLz0GfD5oH5aoA8FYXt9_hFziQPP55yVoxbYWuOPFMiqRBWmL_zbne8D4Kn7Uwg", "07907987979", "0")
-        if not self.validate(self.dID):
-            exit(0)
+        #if not self.validate(self.dID):
+            #exit(0)
         self.cataloguer = Cataloguer()
         self.ingestor = Ingestor()
         #self.upload('Tests/test500.json', self.dID)
 
     def initConfig(self, configFile):
-        """A function that initializes the config file and checks it for errors.
+        """
+        A function that initializes the config file and checks it for errors.
 
         Args:
-            configFile (str): The full name and path of the config file
+            configFile (str): The full name and path of the config file.
 
         Returns:
-            bool: A boolean stating if the config was successfully initialized or not
+            initialized (bool): A boolean stating if the config was successfully initialized or not.
         """
 
         with open(configFile) as json_data_file:
@@ -65,61 +88,70 @@ class API:
         if not data.get('api_key'):
             return False
         self.apiKey = data['api_key']
-        if not self.checkNull(self.apiKey):
+        if not self.validateString(self.apiKey):
             return False
         if not data.get('client_secret'):
             return False
         self.clientSecret = data['client_secret']
-        if not self.checkNull(self.clientSecret):
+        if not self.validateString(self.clientSecret):
             return False
         if not data.get('dataID'):
             return False
-        self.dID = data['dataID']
-        if not self.checkNull(self.dID):
-            return False
+        #self.dID = data['dataID']
+        #if not self.validateString(self.dID):
+            #return False
         if not data.get('ims_org'):
             return False
         self.imsOrg = data['ims_org']
-        if not self.checkNull(self.imsOrg):
+        if not self.validateString(self.imsOrg):
             return False
         if not data.get('sub'):
             return False
         self.sub = data['sub']
-        if not self.checkNull(self.sub):
+        if not self.validateString(self.sub):
             return False
         if not data.get('secret'):
             return False
         self.secret = data['secret']
-        if not self.checkNull(self.secret):
+        if not self.validateString(self.secret):
             return False
         self.aud = 'https://ims-na1.adobelogin.com/c/' + self.apiKey
         return True
 
-    def checkNull(self, obj):
-        """A simple check to see if an object from the config json file is not null or an empty string.
+    def validateString(self, obj):
+        """
+        A helper function for initConfig that sees if an object from the config json file is not null or an empty string.
 
         Args:
-            obj (str): The string object from the config json.
+            obj (str): The string we are validating.
 
         Returns:
-            bool: A boolean stating if the object was null/empty or not."""
+            valid (bool): A boolean stating if the object was null/empty or not.
+        """
 
-        if obj == None or obj == "":
+        if obj is None or obj == "":
             return False
         return True
 
-    #Sends a report of the status of the batch to the user
     def report(self, identification):
+        """
+        Runs the cataloguer report function, which will wait until the batch finishes loading before printing the batch status.
+
+        Args:
+            identification (str): The dataset ID of the batch to report on.
+        """
         self.cataloguer.report(identification, self.imsOrg, self.accessToken, self.apiKey)
 
     def validate(self, dataSetID):
-        """A function that checks if a given dataset ID exists for the current account.
+        """
+        A function that checks if a given dataset ID exists for the current account.
 
         Args:
-            dataSetID (str): The dataset ID passed in by the user.
+            dataSetID (str): A dataset ID to validate.
 
         Returns:
-            bool: A boolean stating whether the dataset ID exists on the current account."""
+            exists (bool): A boolean stating whether the dataset ID exists on the current account.
+        """
 
         if dataSetID == "":
             print("You need to enter a DataSetID.")
@@ -140,17 +172,12 @@ class API:
             return False
         return True
 
-
-    def send(self):
-        pass
-
-    #Generates the AuthToken for use with the API
     def access(self):
-        """A function that generates and Auth Token for the current user.
+        """
+        A function that generates and Auth Token for the current user.
 
         Returns:
-            AuthToken: An AuthToken object which is valid authorization token for the current user that will last for 24
-            hours.
+            authorization (AuthToken): An valid authorization token for the current user that will last for 24 hours.
         """
 
         files = {
@@ -172,6 +199,12 @@ class API:
         return authorization
 
     def sandboxName(self):
+        """
+        A function that requests and returns a sandbox ID.
+
+        Returns:
+            sandbox (str): The ID of the sandbox we are using.
+        """
         headers = {
             'Authorization': 'Bearer ' + self.accessToken.getToken(),
             'x-api-key': self.apiKey,
@@ -189,8 +222,13 @@ class API:
         #return response.json()['name']
         return ""
 
-    #Gets the datasetIDs tied to the user
     def dataId(self):
+        """
+        A function that queries and returns a list of datasets that are assigned to the current user.
+
+        Returns:
+            datasetIDs (list): A list of dataset ID's belonging to the current account.
+        """
         headers = {
             'Authorization': 'Bearer ' + self.accessToken.getToken(),
             'x-api-key': self.apiKey,
@@ -208,24 +246,23 @@ class API:
         #In order to get a specific datasetID what we could do is iterate through the response and create multiple datasetID objects that way since we can access the key by index since response in an unordered dict
         for id in response.json():
             #print(id)
-            datasetID = DataSetId(id)
-            ids.append(datasetID)
+            ids.append(id)
         realID = True
         if realID == False:
             print("The given datasetID is not found in the datasets tied to this account.")
             exit(0)
         return ids
 
-    #Uploads the file to Experience Platform
     def upload(self, files, datasetId):
-        """A function which uploads the given files to the given dataset ID using the ingestor.
+        """
+        A function which uploads the given files to the given dataset ID using the ingestor.
 
         Args:
             files (list): A list of strings which are the full path and names of the files being uploaded.
             datasetId (str): The dataset ID that is being uploaded to.
 
         Returns:
-            str: A string of the response from the Experience platform stating whether a batch succeeded or failed.
+            response (str): The response from the Experience platform stating whether a batch succeeded or failed.
         """
 
         if not self.validate(datasetId):
@@ -239,13 +276,14 @@ class API:
         return self.ingestor.finishUpload(batchId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
 
     def error_checkJson(self, response):
-        """A function which checks the given response object for errors and prints what those errors are.
+        """
+        A helper function which checks the given response object for errors and prints what those errors are.
 
         Args:
             response (Response): A Response object from the requests library.
 
         Returns:
-            bool: A boolean stating whether there was an error in the request or not.
+            valid (bool): A boolean stating whether there was an error in the request or not.
         """
 
         if response.json().get('error'):
@@ -267,3 +305,4 @@ class API:
 #time.sleep(20)
 #api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
 #api.ingestor.new_split('Tests/test500.json')
+help(AuthToken)
