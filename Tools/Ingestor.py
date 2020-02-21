@@ -7,15 +7,37 @@ import os
 import json
 
 class Ingestor(IngestorInterface):
-    """An object that handles the uploading of files to the Adobe Experience Platform."""
+    """
+    An object that handles the uploading of files to the Adobe Experience Platform.
+
+    Quick Methods:
+        error_check(self, response):
+            A function that checks if a response object was valid.
+        finishUpload(self, batchId, imsOrg, accessToken: AuthToken, apiKey, cataloguer):
+            A function that signals the completion of the batch.
+        new_split(self, fileName):
+            A function that splits up JSON files of sizes greater than 256MB.
+        sendFile(self, fileName, batchId, datasetId, imsOrg, accessToken: AuthToken, apiKey):
+            A function that sends the file to a batch to be uploaded.
+        startBatch(self, datasetId, imsOrg, accessToken: AuthToken, apiKey):
+            A function that creates the batch that the files will upload to.
+        upload(self, fileName, batchId, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
+            A function that handles the uploading of files of sizes less than or equal to 256MB.
+        uploadLarge(self, fileName, batchId, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
+            A function that handles the uploading of files of sizes greater than 256MB.
+    """
 
     def __init__(self):
+        """
+        Constructs all the necessary attributes for a API object.
+        """
         pass
 
 #    def upload(self, file, schema:Schema, dataSetID:DataSetId, authToken:AuthToken):
 #        pass
     def startBatch(self, datasetId, imsOrg, accessToken: AuthToken, apiKey):
-        """A function that creates the batch that the files will upload to.
+        """
+        A function that creates the batch that the files will upload to.
 
         Args:
             datasetId (str): The string that is the dataset ID that is being uploaded to.
@@ -24,7 +46,7 @@ class Ingestor(IngestorInterface):
             apiKey (str): The user's API Key for the Adobe Experience Platform.
 
         Returns:
-            str: A string that is the id of the batch that has just been created.
+            batchId (str): A string that is the id of the batch that has just been created.
         """
 
         headers = {
@@ -41,7 +63,8 @@ class Ingestor(IngestorInterface):
         return batchId
 
     def sendFile(self, fileName, batchId, datasetId, imsOrg, accessToken: AuthToken, apiKey):
-        """A function that sends the file to a batch to be uploaded.
+        """
+        A function that sends the file to a batch to be uploaded.
 
         Args:
             fileName (str): The full name and path of the file to be uploaded.
@@ -52,7 +75,7 @@ class Ingestor(IngestorInterface):
             apiKey (str): The user's API Key for the Adobe Experience Platform.
 
         Returns:
-            Response: The response object give by the put request to the Adobe Experience Platform.
+            response (Response): The response object given by the put request to the Adobe Experience Platform.
         """
 
         headers = {
@@ -72,7 +95,8 @@ class Ingestor(IngestorInterface):
         return response
 
     def finishUpload(self, batchId, imsOrg, accessToken: AuthToken, apiKey, cataloguer):
-        """A function that signals the completion of the batch.
+        """
+        A function that signals the completion of the batch.
 
         Args:
             batchId (str): The id of the batch currently being uploaded.
@@ -82,7 +106,7 @@ class Ingestor(IngestorInterface):
             cataloguer (Cataloguer): A Cataloguer object used for reporting the batch status.
 
         Returns:
-            str: The string of the batch status given by the cataloguer's report function.
+            status (str): The string of the batch status given by the cataloguer's report function.
         """
 
         headers = {
@@ -103,7 +127,8 @@ class Ingestor(IngestorInterface):
         return cataloguer.report(batchId, imsOrg, accessToken, apiKey)
 
     def upload(self, fileName, batchId, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
-        """A function that handles the uploading of files of sizes less than or equal to 256MB.
+        """
+        A function that handles the uploading of files of sizes less than or equal to 256MB.
 
         Args:
             fileName (str): The full name and path of the file being uploaded.
@@ -124,7 +149,8 @@ class Ingestor(IngestorInterface):
         #return batchId
 
     def uploadLarge(self, fileName, batchId, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
-        """A function that handles the uploading of files of sizes greater than 256MB.
+        """
+        A function that handles the uploading of files of sizes greater than 256MB.
 
         Args:
             fileName (str): The full name and path of the file being uploaded.
@@ -148,13 +174,14 @@ class Ingestor(IngestorInterface):
         #return batchId
 
     def error_check(self, response):
-        """A function that checks if a response object gave an error code.
+        """
+        A function that checks if a response object was valid.
 
         Args:
             response (Response): A response object from the requests library.
 
         Returns:
-            bool: A boolean stating whether there was an error code or not.
+            valid (bool): A boolean stating whether there was an error code or not.
         """
 
         if response.status_code != 200:
@@ -163,6 +190,9 @@ class Ingestor(IngestorInterface):
         return True
 
     def _one_pass(self, iters):
+        """
+        Helper for the new_split function.
+        """
         i = 0
         while i < len(iters):
             try:
@@ -173,6 +203,9 @@ class Ingestor(IngestorInterface):
                 i += 1
 
     def zip_varlen(self, *iterables):
+        """
+        Helper for the new_split function.
+        """
         iters = [iter(it) for it in iterables]
         while True:  # broken when an empty tuple is given by _one_pass
             val = tuple(self._one_pass(iters))
@@ -182,6 +215,9 @@ class Ingestor(IngestorInterface):
                 break
 
     def grouper(self, iterable, n, fillvalue=None):
+        """
+        Helper for the new_split function.
+        """
         "Collect data into fixed-length chunks or blocks"
         # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
         args = [iter(iterable)] * n
@@ -189,7 +225,8 @@ class Ingestor(IngestorInterface):
         return self.zip_varlen(*args)
 
     def new_split(self, fileName):
-        """A function that splits up JSON files of sizes greater than 256MB.
+        """
+        A function that splits up JSON files of sizes greater than 256MB.
 
         Args:
             fileName: The full name and path of the file being split.
