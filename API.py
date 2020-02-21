@@ -8,10 +8,8 @@ from bitmath import MiB
 #import time
 
 from ParameterClasses.AuthToken import AuthToken
-from ParameterClasses.DataSetId import DataSetId
 from Tools.Cataloguer import Cataloguer
 from Tools.Ingestor import Ingestor
-
 
 class API:
     """
@@ -48,7 +46,7 @@ class API:
 
     def __init__(self, configFile):
         """
-        Constructs all the necessary attributes for a API object.
+        Constructs all the necessary attributes for an API object.
 
         Args:
             configFile (str): The full name and path of the config file.
@@ -248,8 +246,7 @@ class API:
         #In order to get a specific datasetID what we could do is iterate through the response and create multiple datasetID objects that way since we can access the key by index since response in an unordered dict
         for id in response.json():
             #print(id)
-            datasetID = DataSetId(id)
-            ids.append(datasetID)
+            ids.append(id)
         realID = True
         if realID == False:
             print("The given datasetID is not found in the datasets tied to this account.")
@@ -308,4 +305,4 @@ class API:
 #time.sleep(20)
 #api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
 #api.ingestor.new_split('Tests/test500.json')
-help(API)
+help(AuthToken)

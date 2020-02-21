@@ -14,7 +14,7 @@ class Cataloguer(CataloguerInterface):
 
     def __init__(self):
         """
-        Constructs all the necessary attributes for a API object.
+        Constructs all the necessary attributes for a Cataloguer object.
         """
         pass
 
