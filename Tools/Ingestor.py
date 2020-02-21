@@ -1,7 +1,5 @@
 from Interfaces.IngestorInterface import IngestorInterface
-from ParameterClasses.Schema import Schema
 from ParameterClasses.AuthToken import AuthToken
-from ParameterClasses.DataSetId import DataSetId
 import requests
 import os
 import json
@@ -33,8 +31,6 @@ class Ingestor(IngestorInterface):
         """
         pass
 
-#    def upload(self, file, schema:Schema, dataSetID:DataSetId, authToken:AuthToken):
-#        pass
     def startBatch(self, datasetId, imsOrg, accessToken: AuthToken, apiKey):
         """
         A function that creates the batch that the files will upload to.
@@ -88,7 +84,6 @@ class Ingestor(IngestorInterface):
         file = open(fileName, 'rb')
         data = file.read()
         file.close()
-        #print(data)
         response = requests.put(
             'https://platform.adobe.io/data/foundation/import/batches/' + batchId + '/datasets/' + datasetId + '/files/' + os.path.basename(
                 fileName), headers=headers, data=data)
@@ -138,15 +133,9 @@ class Ingestor(IngestorInterface):
             accessToken (AuthToken): The user's current active authorization token.
             apiKey (str): The user's API Key for the Adobe Experience Platform.
         """
-
-        #batchId = self.startBatch(datasetId, imsOrg, accessToken, apiKey)
-        #Uploads the file
         response = self.sendFile(fileName, batchId, datasetId, imsOrg, accessToken, apiKey)
         if not self.error_check(response):
             return
-        #Signals the completion of the batch
-        #return self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
-        #return batchId
 
     def uploadLarge(self, fileName, batchId, datasetId, imsOrg, accessToken:AuthToken, apiKey, cataloguer):
         """
@@ -160,8 +149,6 @@ class Ingestor(IngestorInterface):
             accessToken (AuthToken): The user's current active authorization token.
             apiKey (str): The user's API Key for the Adobe Experience Platform.
         """
-
-        #batchId = self.startBatch(datasetId, imsOrg, accessToken, apiKey)
         self.new_split(fileName)
         for entry in os.scandir('Splits/'):
             response = self.sendFile(entry.path, batchId, datasetId, imsOrg, accessToken, apiKey)
@@ -170,8 +157,6 @@ class Ingestor(IngestorInterface):
                 continue
             os.remove(entry.path)
         os.rmdir('Splits/')
-        #return self.finishUpload(fileName, batchId, imsOrg, accessToken, apiKey, cataloguer)
-        #return batchId
 
     def error_check(self, response):
         """
@@ -183,7 +168,6 @@ class Ingestor(IngestorInterface):
         Returns:
             valid (bool): A boolean stating whether there was an error code or not.
         """
-
         if response.status_code != 200:
             print("Error: " + response.status_code)
             return False
@@ -207,7 +191,7 @@ class Ingestor(IngestorInterface):
         Helper for the new_split function.
         """
         iters = [iter(it) for it in iterables]
-        while True:  # broken when an empty tuple is given by _one_pass
+        while True:
             val = tuple(self._one_pass(iters))
             if val:
                 yield val
@@ -219,9 +203,7 @@ class Ingestor(IngestorInterface):
         Helper for the new_split function.
         """
         "Collect data into fixed-length chunks or blocks"
-        # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
         args = [iter(iterable)] * n
-        #return zip_longest(fillvalue=fillvalue, *args)
         return self.zip_varlen(*args)
 
     def new_split(self, fileName):
@@ -231,17 +213,11 @@ class Ingestor(IngestorInterface):
         Args:
             fileName: The full name and path of the file being split.
         """
-
         file = open(fileName, 'rb')
         values = file.read()
         file.close()
-        #values = values.replace('\n', '')
-        #v = values.encode('utf-8')
         v = json.loads(values)
         os.mkdir('Splits/')
         for i, group in enumerate(self.grouper(v, 125000)):
             with open('Splits/' + os.path.splitext(os.path.basename(fileName))[0] + '_{}.json'.format(i), 'w') as outputfile:
                 json.dump(list(group), outputfile)
-        #for entry in os.scandir('Splits/'):
-            #os.remove(entry.path)
-        #os.rmdir('Splits/')

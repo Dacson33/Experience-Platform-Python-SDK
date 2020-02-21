@@ -2,7 +2,6 @@ from Interfaces.CataloguerInterface import CataloguerInterface
 import requests
 import time
 
-
 class Cataloguer(CataloguerInterface):
     """
     An object that handles the reporting from the Adobe Experience Platform.
@@ -37,8 +36,6 @@ class Cataloguer(CataloguerInterface):
             'Authorization': 'Bearer ' + accessToken.getToken(),
             'x-api-key': apiKey
         }
-        # response = requests.get('https://platform.adobe.io/data/foundation/catalog/batches/' + identification, headers=headers)
-        # print(response.json())
         finished = False
         while not finished:
             time.sleep(5)
