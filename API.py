@@ -305,4 +305,4 @@ class API:
 #time.sleep(20)
 #api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
 #api.ingestor.new_split('Tests/test500.json')
-help(AuthToken)
+#help(AuthToken)
