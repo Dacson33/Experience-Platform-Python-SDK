@@ -1,12 +1,10 @@
-from Interfaces.IngestorInterface import IngestorInterface
-from ParameterClasses.Schema import Schema
-from ParameterClasses.AuthToken import AuthToken
-from ParameterClasses.DataSetId import DataSetId
+from aep_sdk.Interfaces import IngestorInterface
+from aep_sdk.ParameterClasses.AuthToken import AuthToken
 import requests
 import os
 import json
 
-class Ingestor(IngestorInterface):
+class Ingestor(IngestorInterface.IngestorInterface):
     """
     An object that handles the uploading of files to the Adobe Experience Platform.
 
@@ -43,7 +41,7 @@ class Ingestor(IngestorInterface):
             datasetId (str): The string that is the dataset ID that is being uploaded to.
             imsOrg (str): The IMS Organization email of the user.
             accessToken (AuthToken): The user's current active authorization token.
-            apiKey (str): The user's API Key for the Adobe Experience Platform.
+            apiKey (str): The user's aep_sdk Key for the Adobe Experience Platform.
 
         Returns:
             batchId (str): A string that is the id of the batch that has just been created.
@@ -72,7 +70,7 @@ class Ingestor(IngestorInterface):
             datasetId (str): The id of the dataset that is being uploaded to.
             imsOrg (str): The IMS Organization email of the user.
             accessToken (AuthToken): The user's current active authorization token.
-            apiKey (str): The user's API Key for the Adobe Experience Platform.
+            apiKey (str): The user's aep_sdk Key for the Adobe Experience Platform.
 
         Returns:
             response (Response): The response object given by the put request to the Adobe Experience Platform.
@@ -102,7 +100,7 @@ class Ingestor(IngestorInterface):
             batchId (str): The id of the batch currently being uploaded.
             imsOrg (str): The IMS Organization email of the user.
             accessToken (AuthToken): The user's current active authorization token.
-            apiKey (str): The user's API Key for the Adobe Experience Platform.
+            apiKey (str): The user's aep_sdk Key for the Adobe Experience Platform.
             cataloguer (Cataloguer): A Cataloguer object used for reporting the batch status.
 
         Returns:
@@ -136,7 +134,7 @@ class Ingestor(IngestorInterface):
             datasetId (str): The id of the dataset that is being uploaded to.
             imsOrg (str): The IMS Organization email of the user.
             accessToken (AuthToken): The user's current active authorization token.
-            apiKey (str): The user's API Key for the Adobe Experience Platform.
+            apiKey (str): The user's aep_sdk Key for the Adobe Experience Platform.
         """
 
         #batchId = self.startBatch(datasetId, imsOrg, accessToken, apiKey)
@@ -158,7 +156,7 @@ class Ingestor(IngestorInterface):
             datasetId (str): The id of the dataset that is being uploaded to.
             imsOrg (str): The IMS Organization email of the user.
             accessToken (AuthToken): The user's current active authorization token.
-            apiKey (str): The user's API Key for the Adobe Experience Platform.
+            apiKey (str): The user's aep_sdk Key for the Adobe Experience Platform.
         """
 
         #batchId = self.startBatch(datasetId, imsOrg, accessToken, apiKey)

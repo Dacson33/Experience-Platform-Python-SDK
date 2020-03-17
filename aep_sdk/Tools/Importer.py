@@ -1,6 +1,6 @@
-from Interfaces.IngestorInterface import IngestorInterface
-from Interfaces.CataloguerInterface import CataloguerInterface
-from Interfaces.ValidatorInterface import ValidatorInterface
+from aep_sdk.Interfaces import IngestorInterface
+from aep_sdk.Interfaces.CataloguerInterface import CataloguerInterface
+from aep_sdk.Interfaces import ValidatorInterface
 
 
 class Importer:

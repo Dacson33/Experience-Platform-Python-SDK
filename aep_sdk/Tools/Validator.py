@@ -1,7 +1,6 @@
-from Interfaces.ValidatorInterface import ValidatorInterface
-from ParameterClasses.AuthInfo import AuthInfo
-from ParameterClasses.AuthToken import AuthToken
-from ParameterClasses.Schema import Schema
+from aep_sdk.Interfaces import ValidatorInterface
+from aep_sdk.ParameterClasses import AuthInfo
+from aep_sdk.ParameterClasses import Schema
 
 
 class Validator(ValidatorInterface):

@@ -1,7 +1,6 @@
 import abc
-from ParameterClasses.AuthToken import AuthToken
-from ParameterClasses.DataSetId import DataSetId
-from ParameterClasses.Schema import Schema
+from aep_sdk.ParameterClasses.AuthToken import AuthToken
+from aep_sdk.ParameterClasses.DataSetId import DataSetId
 
 
 class IngestorInterface(abc.ABC):

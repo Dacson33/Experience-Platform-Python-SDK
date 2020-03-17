@@ -7,9 +7,9 @@ import os
 from bitmath import MiB
 #import time
 
-from ParameterClasses.AuthToken import AuthToken
-from Tools.Cataloguer import Cataloguer
-from Tools.Ingestor import Ingestor
+from aep_sdk.ParameterClasses.AuthToken import AuthToken
+from aep_sdk.Tools.Cataloguer import Cataloguer
+from aep_sdk.Tools.Ingestor import Ingestor
 
 class API:
     """
@@ -17,7 +17,7 @@ class API:
 
     Attributes:
         accessToken (AuthToken): The user's current active authorization token.
-        apiKey (str): The user's API Key for the Adobe Experience Platform.
+        apiKey (str): The user's aep_sdk Key for the Adobe Experience Platform.
         aud (str): The audience for the JWT token.
         cataloguer (Cataloguer): A Cataloguer object used for reporting.
         clientSecret (str): The client_secret id of the user.
@@ -46,7 +46,7 @@ class API:
 
     def __init__(self, configFile):
         """
-        Constructs all the necessary attributes for an API object.
+        Constructs all the necessary attributes for an aep_sdk object.
 
         Args:
             configFile (str): The full name and path of the config file.
@@ -298,7 +298,7 @@ class API:
                 return False
         return True
 
-#api = API('config.json')
+#api = aep_sdk('config.json')
 #api.upload(['Tests/test1.json', 'Tests/test128.json'], api.dID)
 #print(api.validate(""))
 #batch = api.upload('Tests/testError.json', api.dID)

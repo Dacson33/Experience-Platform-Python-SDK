@@ -1,4 +1,4 @@
-from Interfaces.CataloguerInterface import CataloguerInterface
+from aep_sdk.Interfaces.CataloguerInterface import CataloguerInterface
 import requests
 import time
 
@@ -26,7 +26,7 @@ class Cataloguer(CataloguerInterface):
             identification (str): The id of the batch that is being checked.
             imsOrg (str): The IMS Organization email of the user.
             accessToken (AuthToken): The user's current active authorization token.
-            apiKey (str): The user's API Key for the Adobe Experience Platform.
+            apiKey (str): The user's aep_sdk Key for the Adobe Experience Platform.
 
         Returns:
             status (str): A string that is the status of the given batch.

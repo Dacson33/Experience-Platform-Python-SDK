@@ -1,8 +1,8 @@
 import abc
-from ParameterClasses.AuthInfo import AuthInfo
-from ParameterClasses.AuthToken import AuthToken
-from ParameterClasses.Schema import Schema
-from ParameterClasses.DataSetId import DataSetId
+from aep_sdk.ParameterClasses import AuthInfo
+from aep_sdk.ParameterClasses.AuthToken import AuthToken
+from aep_sdk.ParameterClasses import Schema
+from aep_sdk.ParameterClasses.DataSetId import DataSetId
 
 
 class ValidatorInterface(abc.ABC):

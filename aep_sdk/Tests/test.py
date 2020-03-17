@@ -1,7 +1,7 @@
 import unittest
 
-from API import API
-from ParameterClasses.AuthToken import AuthToken
+from aep_sdk.API import API
+from aep_sdk.ParameterClasses.AuthToken import AuthToken
 
 class TestSDK(unittest.TestCase):
 
