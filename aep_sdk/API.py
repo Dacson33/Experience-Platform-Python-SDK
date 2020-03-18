@@ -222,7 +222,7 @@ class API:
         #return response.json()['name']
         return ""
 
-    def dataId(self):
+    def dataId(self, limit):
         """
         A function that queries and returns a list of datasets that are assigned to the current user.
 
@@ -235,7 +235,7 @@ class API:
             'x-gw-ims-org-id': self.imsOrg,
         }
         params = (
-            ('limit', '5'),
+            ('limit', str(limit)),
             ('properties', 'name'),
         )
         response = requests.get('https://platform.adobe.io/data/foundation/catalog/dataSets', headers=headers, params=params)
