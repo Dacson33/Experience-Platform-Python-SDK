@@ -96,8 +96,6 @@ class API:
         self.client_secret = data['client_secret']
         if not self.validate_string(self.client_secret):
             return False
-        #if not data.get('dataID'):
-        #    return False
         if not data.get('ims_org'):
             return False
         self.ims_org = data['ims_org']
@@ -259,9 +257,3 @@ class API:
                 print('Error: ' + response.json()['detail'])
                 return False
         return True
-
-
-api = API('config.json')
-print(api.get_datasets())
-#api.upload(['Tests/test1.json'], "5e29e7e984479018a93e70a7", blocking=False)
-#api.report("668a773b-c273-4711-9580-c4089cf7c63d", full_response=True)
