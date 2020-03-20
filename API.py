@@ -2,125 +2,121 @@ import requests
 import json
 import jwt
 import datetime
-#import cryptography
 import os
+
 from bitmath import MiB
-#import time
 
 from ParameterClasses.AuthToken import AuthToken
 from Tools.Cataloguer import Cataloguer
 from Tools.Ingestor import Ingestor
+
 
 class API:
     """
     The handler for the entire SDK.
 
     Attributes:
-        accessToken (AuthToken): The user's current active authorization token.
-        apiKey (str): The user's API Key for the Adobe Experience Platform.
+        access_token (AuthToken): The user's current active authorization token.
+        api_key (str): The user's API Key for the Adobe Experience Platform.
         aud (str): The audience for the JWT token.
         cataloguer (Cataloguer): A Cataloguer object used for reporting.
-        clientSecret (str): The client_secret id of the user.
-        imsOrg (str): The IMS Organization email of the user.
+        client_secret (str): The client_secret id of the user.
+        ims_org (str): The IMS Organization email of the user.
         ingestor (Ingestor): An Ingestor object used for the handling of uploading files.
-        jwtToken (str): The current JWT token.
+        jwt_token (str): The current JWT token.
         secret (str): The user's secret key used for the creation of JWT tokens.
         sub (str): The user's Technical Account id for Adobe I/O.
 
     Quick Methods:
         access(self):
             A function that generates and Auth Token for the current user.
-        dataId(self):
+        get_datasets(self):
             A function that queries and returns a list of datasets that are assigned to the current user.
-        initConfig(self, configFile):
+        init_config(self, config_file):
             A function that initializes the config file and checks it for errors.
         report(self, identification):
-            Runs the cataloguer report function, which will wait until the batch finishes loading before printing the batch status.
-        sandboxName(self):
-            A function that requests and returns a sandbox ID.
-        upload(self, files, datasetId):
+            Runs the cataloguer report function, which will wait until the batch finishes loading before
+             printing the batch status.
+        upload(self, files, dataset_id, blocking):
             A function which uploads the given files to the given dataset ID using the ingestor.
-        validate(self, dataSetID):
+        validate(self, data_set_id):
             A function that checks if a given dataset ID exists for the current account.
     """
 
-    def __init__(self, configFile):
+    def __init__(self, config_file):
         """
         Constructs all the necessary attributes for an API object.
 
         Args:
-            configFile (str): The full name and path of the config file.
+            config_file (str): The full name and path of the config file.
         """
-        if not self.initConfig(configFile):
+        self.api_key = None
+        self.client_secret = None
+        self.ims_org = None
+        self.sub = None
+        self.secret = None
+        self.aud = None
+
+        if not self.init_config(config_file):
             print("Bad config file")
             exit(0)
-        #Generation of the JWT token
+
         payload = {
             "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=600),
-            "iss": self.imsOrg,
+            "iss": self.ims_org,
             "sub": self.sub,
             "https://ims-na1.adobelogin.com/s/ent_dataservices_sdk": True,
             "aud": self.aud
         }
-        self.jwtToken = jwt.encode(payload, self.secret, algorithm='RS256').decode('utf-8')
-        #self.imsOrg = data['ims_org']
-        self.accessToken = self.access()
-        #self.accessToken = AuthToken("eyJ4NXUiOiJpbXNfbmExLWtleS0xLmNlciIsImFsZyI6IlJTMjU2In0.eyJpZCI6IjE1ODA3NTU5MzM0OTFfNTM3ZDZiYWQtNmJjOS00YWFjLWEwZTktMDEzM2YyOTFiNzYxX3VlMSIsImNsaWVudF9pZCI6ImQ4YjY1Y2E3NWVlNDRiOGNhOWJmODdiNmZkYzBhMTc0IiwidXNlcl9pZCI6IkQ5Q0I3OEEyNURBRTE0QkMwQTQ5NUMyMUB0ZWNoYWNjdC5hZG9iZS5jb20iLCJzdGF0ZSI6IntcInNlc3Npb25cIjpcImh0dHBzOi8vaW1zLW5hMS5hZG9iZWxvZ2luLmNvbS9pbXMvc2Vzc2lvbi92MS9aakExT1daak1Ea3RabU5tWmkwME1qTTFMV0V5WkRRdFlqUmlNREV3TnpOalpXTTBMUzFFT1VOQ056aEJNalZFUVVVeE5FSkRNRUUwT1RWRE1qRkFkR1ZqYUdGalkzUXVZV1J2WW1VdVkyOXRcIn0iLCJ0eXBlIjoiYWNjZXNzX3Rva2VuIiwiYXMiOiJpbXMtbmExIiwiZmciOiJVRkFLWUpFMkhQRTVKUFVQRzZBTFlQUUFEVT09PT09PSIsIm1vaSI6IjU0YmVlZjg3IiwiYyI6IlRrZnhXK3dwRStzZk9TbGc1RlZITlE9PSIsImV4cGlyZXNfaW4iOiI4NjQwMDAwMCIsInNjb3BlIjoib3BlbmlkLHNlc3Npb24sQWRvYmVJRCxyZWFkX29yZ2FuaXphdGlvbnMsYWRkaXRpb25hbF9pbmZvLnByb2plY3RlZFByb2R1Y3RDb250ZXh0IiwiY3JlYXRlZF9hdCI6IjE1ODA3NTU5MzM0OTEifQ.psJCN3iFkzMx9bgkQBB4cDBHzvuHK6eLT146iw1z-89kf0m0iPqshJuX3ddToUWp3hXEbZWkr9Ta1BezbjTvSnpgtYbNFAs4M2mYnVHpzqCgJQxI41JzQKHAqj94_dHNJIWvHJERnME1L9dX0DHSmFSTSZVwOUZWT7HFdZg-2wPTG4wY3VRVmiwVmmW3lQAJ5aL6N7O1rWUqEEb9tXHM9UJSKeFTdlsmyAX_MV9TK9-zB5kDpkhMK41rQiwUVWzCkB1gawJPutweGv5GiUieOOlwLz0GfD5oH5aoA8FYXt9_hFziQPP55yVoxbYWuOPFMiqRBWmL_zbne8D4Kn7Uwg", "07907987979", "0")
-        #if not self.validate(self.dID):
-            #exit(0)
+        self.jwt_token = jwt.encode(payload, self.secret, algorithm='RS256').decode('utf-8')
+        self.access_token = self.access()
         self.cataloguer = Cataloguer()
         self.ingestor = Ingestor()
-        #self.upload('Tests/test500.json', self.dID)
-
-    def initConfig(self, configFile):
+        
+    def init_config(self, config_file):
         """
         A function that initializes the config file and checks it for errors.
 
         Args:
-            configFile (str): The full name and path of the config file.
+            config_file (str): The full name and path of the config file.
 
         Returns:
             initialized (bool): A boolean stating if the config was successfully initialized or not.
         """
 
-        with open(configFile) as json_data_file:
+        with open(config_file) as json_data_file:
             data = json.load(json_data_file)
         if not data.get('api_key'):
             return False
-        self.apiKey = data['api_key']
-        if not self.validateString(self.apiKey):
+        self.api_key = data['api_key']
+        if not self.validate_string(self.api_key):
             return False
         if not data.get('client_secret'):
             return False
-        self.clientSecret = data['client_secret']
-        if not self.validateString(self.clientSecret):
+        self.client_secret = data['client_secret']
+        if not self.validate_string(self.client_secret):
             return False
-        if not data.get('dataID'):
-            return False
-        #self.dID = data['dataID']
-        #if not self.validateString(self.dID):
-            #return False
         if not data.get('ims_org'):
             return False
-        self.imsOrg = data['ims_org']
-        if not self.validateString(self.imsOrg):
+        self.ims_org = data['ims_org']
+        if not self.validate_string(self.ims_org):
             return False
         if not data.get('sub'):
             return False
         self.sub = data['sub']
-        if not self.validateString(self.sub):
+        if not self.validate_string(self.sub):
             return False
         if not data.get('secret'):
             return False
         self.secret = data['secret']
-        if not self.validateString(self.secret):
+        if not self.validate_string(self.secret):
             return False
-        self.aud = 'https://ims-na1.adobelogin.com/c/' + self.apiKey
+        self.aud = 'https://ims-na1.adobelogin.com/c/' + self.api_key
         return True
 
-    def validateString(self, obj):
+    def validate_string(self, obj):
         """
-        A helper function for initConfig that sees if an object from the config json file is not null or an empty string.
+        A helper function that checks if an object from the config json file is not null or the empty string.
 
         Args:
             obj (str): The string we are validating.
@@ -128,101 +124,70 @@ class API:
         Returns:
             valid (bool): A boolean stating if the object was null/empty or not.
         """
-
         if obj is None or obj == "":
             return False
         return True
 
-    def report(self, identification):
+    def report(self, identification, full_response=False):
         """
-        Runs the cataloguer report function, which will wait until the batch finishes loading before printing the batch status.
+        Runs the cataloguer report function, which will wait until the batch finishes loading before printing
+         the batch status.
 
         Args:
             identification (str): The dataset ID of the batch to report on.
+            full_response (bool): Whether or not to print the whole json response for querying a batch status.
         """
-        self.cataloguer.report(identification, self.imsOrg, self.accessToken, self.apiKey)
+        self.cataloguer.report(identification, self.ims_org, self.access_token, self.api_key, full_response)
 
-    def validate(self, dataSetID):
+    def validate(self, data_set_id):
         """
         A function that checks if a given dataset ID exists for the current account.
 
         Args:
-            dataSetID (str): A dataset ID to validate.
+            data_set_id (str): A dataset ID to validate.
 
         Returns:
             exists (bool): A boolean stating whether the dataset ID exists on the current account.
         """
-
-        if dataSetID == "":
+        if data_set_id == "":
             print("You need to enter a DataSetID.")
             return False
         headers = {
-            'Authorization': 'Bearer ' + self.accessToken.getToken(),
-            'x-api-key': self.apiKey,
-            'x-gw-ims-org-id': self.imsOrg,
+            'Authorization': 'Bearer ' + self.access_token.get_token(),
+            'x-api-key': self.api_key,
+            'x-gw-ims-org-id': self.ims_org,
         }
         params = (
             ('properties', 'name,description,state,tags,files'),
         )
-        response = requests.get('https://platform.adobe.io/data/foundation/catalog/dataSets/' + dataSetID,
+        response = requests.get('https://platform.adobe.io/data/foundation/catalog/dataSets/' + data_set_id,
                                 headers=headers, params=params)
-        #print(response.json())
-        if not self.error_checkJson(response):
-            #print("The given datasetID is not found in the datasets tied to this account.")
+        if not self.error_check_json(response):
             return False
         return True
 
     def access(self):
         """
-        A function that generates and Auth Token for the current user.
+        A function that generates an Auth Token for the current user.
 
         Returns:
             authorization (AuthToken): An valid authorization token for the current user that will last for 24 hours.
         """
-
         files = {
-            'client_id': (None, self.apiKey),
-            'client_secret': (None, self.clientSecret),
-            'jwt_token': (None, self.jwtToken),
+            'client_id': (None, self.api_key),
+            'client_secret': (None, self.client_secret),
+            'jwt_token': (None, self.jwt_token),
         }
-        testData = requests.post('https://ims-na1.adobelogin.com/ims/exchange/jwt/', files=files)
-        #print(testData.json())
-        if not self.error_checkJson(testData):
+        test_data = requests.post('https://ims-na1.adobelogin.com/ims/exchange/jwt/', files=files)
+        if not self.error_check_json(test_data):
             exit(0)
-        name = testData.json()['access_token']
-        expiration = testData.json()['expires_in']
-        expirationDate = datetime.datetime.utcnow() + datetime.timedelta(milliseconds=expiration - 1000)
-        authorization = AuthToken(name, expiration, expirationDate)
-        #print(authorization.getToken())
-        #print(authorization.getExpiration())
-        #print(authorization.getExpirationDate())
+        name = test_data.json()['access_token']
+        expiration = test_data.json()['expires_in']
+        expiration_date = datetime.datetime.utcnow() + datetime.timedelta(milliseconds=expiration - 1000)
+        authorization = AuthToken(name, expiration, expiration_date)
         return authorization
 
-    def sandboxName(self):
-        """
-        A function that requests and returns a sandbox ID.
-
-        Returns:
-            sandbox (str): The ID of the sandbox we are using.
-        """
-        headers = {
-            'Authorization': 'Bearer ' + self.accessToken.getToken(),
-            'x-api-key': self.apiKey,
-            'x-gw-ims-org-id': self.imsOrg,
-        }
-        params = (
-            ('limit', '5'),
-            ('properties', 'name'),
-        )
-        response = requests.get('https://platform.adobe.io/data/foundation/sandbox-management/sandboxes', headers=headers,
-                                params=params)
-        print('Sandbox')
-        #print(response.json())
-        #print(response.json()['name'])
-        #return response.json()['name']
-        return ""
-
-    def dataId(self):
+    def get_datasets(self, limit=5):
         """
         A function that queries and returns a list of datasets that are assigned to the current user.
 
@@ -230,52 +195,48 @@ class API:
             datasetIDs (list): A list of dataset ID's belonging to the current account.
         """
         headers = {
-            'Authorization': 'Bearer ' + self.accessToken.getToken(),
-            'x-api-key': self.apiKey,
-            'x-gw-ims-org-id': self.imsOrg,
+            'Authorization': 'Bearer ' + self.access_token.get_token(),
+            'x-api-key': self.api_key,
+            'x-gw-ims-org-id': self.ims_org,
         }
         params = (
-            ('limit', '5'),
+            ('limit', limit),
             ('properties', 'name'),
         )
-        response = requests.get('https://platform.adobe.io/data/foundation/catalog/dataSets', headers=headers, params=params)
+        response = requests.get('https://platform.adobe.io/data/foundation/catalog/dataSets',
+                                headers=headers, params=params)
         ids = []
-        #print(response.json())
-        if not self.error_checkJson(response):
+        if not self.error_check_json(response):
             exit(0)
-        #In order to get a specific datasetID what we could do is iterate through the response and create multiple datasetID objects that way since we can access the key by index since response in an unordered dict
-        for id in response.json():
-            #print(id)
-            ids.append(id)
-        realID = True
-        if realID == False:
-            print("The given datasetID is not found in the datasets tied to this account.")
-            exit(0)
+        for response_id in response.json():
+            ids.append(response_id)
         return ids
 
-    def upload(self, files, datasetId):
+    def upload(self, files, dataset_id, blocking=True):
         """
-        A function which uploads the given files to the given dataset ID using the ingestor.
+        A function which uploads the given json files to the given dataset ID using the ingestor.
 
         Args:
             files (list): A list of strings which are the full path and names of the files being uploaded.
-            datasetId (str): The dataset ID that is being uploaded to.
+            dataset_id (str): The dataset ID that is being uploaded to.
+            blocking (bool): Whether or not to block and wait for a report of the upload success or failure.
 
         Returns:
             response (str): The response from the Experience platform stating whether a batch succeeded or failed.
         """
-
-        if not self.validate(datasetId):
+        if not self.validate(dataset_id):
             exit(0)
-        batchId = self.ingestor.startBatch(datasetId, self.imsOrg, self.accessToken, self.apiKey)
+        batch_id = self.ingestor.start_batch(dataset_id, self.ims_org, self.access_token, self.api_key)
         for fileName in files:
-            if(os.path.getsize(fileName) <= MiB(256).to_Byte()):
-                self.ingestor.upload(fileName, batchId, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
+            if os.path.getsize(fileName) <= MiB(256).to_Byte():
+                self.ingestor.upload(fileName, batch_id, dataset_id, self.ims_org, self.access_token, self.api_key)
             else:
-                self.ingestor.uploadLarge(fileName, batchId, datasetId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
-        return self.ingestor.finishUpload(batchId, self.imsOrg, self.accessToken, self.apiKey, self.cataloguer)
+                self.ingestor.upload_large(fileName, batch_id, dataset_id, self.ims_org,
+                                           self.access_token, self.api_key)
+        return self.ingestor.finish_upload(batch_id, self.ims_org, self.access_token, self.api_key,
+                                           self.cataloguer, blocking)
 
-    def error_checkJson(self, response):
+    def error_check_json(self, response):
         """
         A helper function which checks the given response object for errors and prints what those errors are.
 
@@ -285,7 +246,6 @@ class API:
         Returns:
             valid (bool): A boolean stating whether there was an error in the request or not.
         """
-
         if response.json().get('error'):
             print('Error: ' + response.json()['error_description'])
             return False
@@ -297,12 +257,3 @@ class API:
                 print('Error: ' + response.json()['detail'])
                 return False
         return True
-
-#api = API('config.json')
-#api.upload(['Tests/test1.json', 'Tests/test128.json'], api.dID)
-#print(api.validate(""))
-#batch = api.upload('Tests/testError.json', api.dID)
-#time.sleep(20)
-#api.cataloguer.report(batch, api.imsOrg, api.accessToken, api.apiKey)
-#api.ingestor.new_split('Tests/test500.json')
-help(AuthToken)
