@@ -96,8 +96,8 @@ class API:
         self.client_secret = data['client_secret']
         if not self.validate_string(self.client_secret):
             return False
-        if not data.get('dataID'):
-            return False
+        #if not data.get('dataID'):
+        #    return False
         if not data.get('ims_org'):
             return False
         self.ims_org = data['ims_org']
@@ -189,7 +189,7 @@ class API:
         authorization = AuthToken(name, expiration, expiration_date)
         return authorization
 
-    def get_datasets(self):
+    def get_datasets(self, limit=5):
         """
         A function that queries and returns a list of datasets that are assigned to the current user.
 
@@ -202,7 +202,7 @@ class API:
             'x-gw-ims-org-id': self.ims_org,
         }
         params = (
-            ('limit', '5'),
+            ('limit', limit),
             ('properties', 'name'),
         )
         response = requests.get('https://platform.adobe.io/data/foundation/catalog/dataSets',
@@ -262,5 +262,6 @@ class API:
 
 
 api = API('config.json')
-api.upload(['Tests/test1.json'], "5e29e7e984479018a93e70a7", blocking=False)
+print(api.get_datasets())
+#api.upload(['Tests/test1.json'], "5e29e7e984479018a93e70a7", blocking=False)
 #api.report("668a773b-c273-4711-9580-c4089cf7c63d", full_response=True)
