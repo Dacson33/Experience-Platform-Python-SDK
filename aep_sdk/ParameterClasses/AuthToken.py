@@ -1,3 +1,6 @@
+import datetime
+
+
 class AuthToken:
 	"""
 	Holds all the information about an Authentication Token for the Adobe Experience Platform.
@@ -5,51 +8,51 @@ class AuthToken:
 	Attributes:
 		token (str): The actual token used for authentication.
 		expiration (int): The number of milliseconds this token is valid for.
-		expirationDate (datetime): The datetime that this token expires.
+		expiration_date (datetime.pyi): The datetime that this token expires.
 	Quick Methods:
-		getExpiration(self):
+		get_expiration(self):
 			Simple getter for expiration.
-		getExpirationDate(self):
-			Simple getter for expirationDate.
-		getToken(self):
+		get_expirationDate(self):
+			Simple getter for expiration_date.
+		get_token(self):
 			Simple getter for token.
 	"""
-	def __init__(self, token, expiration, expirationDate):
+	def __init__(self, token, expiration, expiration_date):
 		"""
 		Constructs all the necessary attributes for an AuthToken object.
 
 		Args:
 			token (str): The actual token used for authentication.
 			expiration (int): The number of milliseconds this token is valid for.
-			expirationDate (datetime): The datetime that this token expires.
+			expiration_date (datetime.pyi): The datetime that this token expires.
 		"""
-		self.Token = token
-		self.Expiration = expiration
-		self.ExpirationDate = expirationDate
+		self.token = token
+		self.expiration = expiration
+		self.expiration_date = expiration_date
 	
-	def getToken(self):
+	def get_token(self):
 		"""
 		Simple getter for token.
 
 		Returns:
 			token (str): The actual token used for authentication.
 		"""
-		return self.Token
+		return self.token
 	
-	def getExpiration(self):
+	def get_expiration(self):
 		"""
 		Simple getter for expiration.
 
 		Returns:
 			expiration (int): The number of milliseconds this token is valid for.
 		"""
-		return self.Expiration
+		return self.expiration
 
-	def getExpirationDate(self):
+	def get_expiration_date(self):
 		"""
-		Simple getter for expirationDate.
+		Simple getter for expiration_date.
 
 		Returns:
-			expirationDate (datetime): The datetime that this token expires.
+			expiration_date (datetime.pyi): The datetime that this token expires.
 		"""
-		return self.ExpirationDate
+		return self.expiration_date

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='aep_sdk',
-    version='0.0.3',
+    version='0.0.35',
     description='A SDK for the Adobe Experience Platform',
     long_description=long_description,
     long_description_content_type="text/markdown",
