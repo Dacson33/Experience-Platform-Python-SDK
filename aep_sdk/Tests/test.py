@@ -27,6 +27,7 @@ class TestSDK(unittest.TestCase):
         self.assertFalse(self.api.initConfig('badConfig.json'))
 
     def testIdLimit(self):
+        self.assertEqual(len(self.api.dataId(2)), 2)
         self.assertEqual(len(self.api.dataId(5)), 5)
         self.assertEqual(len(self.api.dataId(7)), 7)
 
