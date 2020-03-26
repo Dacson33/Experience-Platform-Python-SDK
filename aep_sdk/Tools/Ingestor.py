@@ -6,8 +6,8 @@ import csv
 from _csv import QUOTE_ALL
 from bitmath import MiB
 
-from Interfaces.IngestorInterface import IngestorInterface
-from ParameterClasses.AuthToken import AuthToken
+from aep_sdk.Interfaces.IngestorInterface import IngestorInterface
+from aep_sdk.ParameterClasses.AuthToken import AuthToken
 
 
 class Ingestor(IngestorInterface):
@@ -64,9 +64,8 @@ class Ingestor(IngestorInterface):
                + '                "format": "json",\n' \
                + '                "isMultiLineJson": true\n           }\n      }'
         response = requests.post('https://platform.adobe.io/data/foundation/import/batches', headers=headers, data=data)
-        print('Create batch status: ' + response.json()['status'])
         batch_id = response.json()['id']
-        print(batch_id)
+        print('Batch ID: ' + str(batch_id))
         return batch_id
 
     def send_file(self, file_name, batch_id, dataset_id, ims_org, access_token: AuthToken, api_key):
@@ -123,17 +122,18 @@ class Ingestor(IngestorInterface):
         params = (
             ('action', 'COMPLETE'),
         )
-        print('Signal Completion: ')
         response = requests.post('https://platform.adobe.io/data/foundation/import/batches/' + batch_id,
                                  headers=headers, params=params)
         if not self.error_check(response):
             print("Signal Completion has failed for " + batch_id)
+            return "Failed"
         else:
             print(batch_id + " upload started successfully")
         if blocking:
             return cataloguer.report(batch_id, ims_org, access_token, api_key)
         else:
-            return "Your Upload is in Progress"
+            print("Your Upload is in Progress")
+            return "In Progress"
 
     def upload(self, file_name, batch_id, dataset_id, ims_org, access_token: AuthToken, api_key):
         """
@@ -147,28 +147,9 @@ class Ingestor(IngestorInterface):
             access_token (AuthToken): The user's current active authorization token.
             api_key (str): The user's API Key for the Adobe Experience Platform.
         """
-        if file_name.lower().endswith(".csv"):
-            self.csv_split(file_name, ',')
-            for entry in os.scandir('Splits/'):
-                response = self.send_file(entry.path, batch_id, dataset_id, ims_org, access_token, api_key)
-                if not self.error_check(response):
-                    print(os.path.basename(entry.path) + ' failed to upload')
-                    continue
-                os.remove(entry.path)
-            os.rmdir('Splits/')
-        elif file_name.lower().endswith(".tsv"):
-            self.csv_split(file_name, '\t')
-            for entry in os.scandir('Splits/'):
-                response = self.send_file(entry.path, batch_id, dataset_id, ims_org, access_token, api_key)
-                if not self.error_check(response):
-                    print(os.path.basename(entry.path) + ' failed to upload')
-                    continue
-                os.remove(entry.path)
-            os.rmdir('Splits/')
-        else:
-            response = self.send_file(file_name, batch_id, dataset_id, ims_org, access_token, api_key)
-            if not self.error_check(response):
-                return
+        response = self.send_file(file_name, batch_id, dataset_id, ims_org, access_token, api_key)
+        if not self.error_check(response):
+            return
 
     def upload_large(self, file_name, batch_id, dataset_id, ims_org, access_token: AuthToken, api_key):
         """
@@ -184,10 +165,6 @@ class Ingestor(IngestorInterface):
         """
         if file_name.lower().endswith(".json"):
             self.json_split(file_name)
-        elif file_name.lower().endswith(".csv"):
-            self.csv_split(file_name, ',')
-        elif file_name.lower().endswith(".tsv"):
-            self.csv_split(file_name, '\t')
         for entry in os.scandir('Splits/'):
             response = self.send_file(entry.path, batch_id, dataset_id, ims_org, access_token, api_key)
             if not self.error_check(response):
@@ -261,57 +238,3 @@ class Ingestor(IngestorInterface):
             with open('Splits/' + os.path.splitext(os.path.basename(file_name))[0]
                       + '_{}.json'.format(self.current_index), 'w') as output_file:
                 json.dump(list(group), output_file)
-
-    def csv_split_old(self, file_name, delimiter):
-        first_line = ""
-        output_text = []
-        first = True
-        row_length = 0
-        first_row_length = 0
-        os.mkdir('Splits/')
-        with open(file_name, 'r') as f:
-            reader = csv.reader(f, delimiter=delimiter, quoting=QUOTE_ALL)
-            i = 0
-            for row in reader:
-                if first:
-                    row_length = self.utf8len(delimiter.join(row)) + 6
-                    print(row_length)
-                    first_row_length = row_length
-                    first_line = row
-                    first = False
-                    continue
-                row_length = row_length + self.utf8len(delimiter.join(row)) + 6
-                print(row_length)
-                output_text.append(row)
-                if row_length > MiB(256).to_Byte():
-                    self.write_to_csv(file_name, output_text, first_line, i, delimiter)
-                    i = i + 1
-                    output_text = []
-                    row_length = first_row_length
-            if output_text is not []:
-                self.write_to_csv(file_name, output_text, first_line, i, delimiter)
-        return
-
-    def write_to_csv(self, file_name, output_text, headers, index, delimiter):
-        extension = '.csv'
-        if delimiter == '\t':
-            extension = '.tsv'
-        if delimiter == ',':
-            extension = '.csv'
-        with open('Splits/' + os.path.splitext(os.path.basename(file_name))[0]
-                  + '_{}'.format(index) + extension, 'w') as output_file:
-            writer = csv.writer(output_file, delimiter=delimiter, lineterminator='\n')
-            writer.writerow(headers)
-            writer.writerows(output_text)
-
-    def utf8len(self, s):
-        return len(s.encode('utf-8'))
-
-    def csv_split(self, file_name, delimiter):
-        os.mkdir('Splits/')
-        with open('Splits/' + os.path.splitext(os.path.basename(file_name))[0]
-                  + '_{}.json'.format(self.current_index), 'w') as json_file:
-            with open(file_name, 'r') as csv_file:
-                reader = csv.DictReader(csv_file, delimiter=delimiter)
-                out = json.dumps([row for row in reader])
-                json_file.write(out)

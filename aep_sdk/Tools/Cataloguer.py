@@ -1,7 +1,7 @@
 import requests
 import time
 
-from Interfaces.CataloguerInterface import CataloguerInterface
+from aep_sdk.Interfaces.CataloguerInterface import CataloguerInterface
 
 
 class Cataloguer(CataloguerInterface):

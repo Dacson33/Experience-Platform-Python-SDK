@@ -6,9 +6,10 @@ import os
 
 from bitmath import MiB
 
-from ParameterClasses.AuthToken import AuthToken
-from Tools.Cataloguer import Cataloguer
-from Tools.Ingestor import Ingestor
+from aep_sdk.ParameterClasses.AuthToken import AuthToken
+from aep_sdk.ParameterClasses.Dataset import Dataset
+from aep_sdk.Tools.Cataloguer import Cataloguer
+from aep_sdk.Tools.Ingestor import Ingestor
 
 
 class API:
@@ -192,7 +193,7 @@ class API:
         A function that queries and returns a list of datasets that are assigned to the current user.
 
         Returns:
-            datasetIDs (list): A list of dataset ID's belonging to the current account.
+            datasets (list): A list of datasets belonging to the current account.
         """
         headers = {
             'Authorization': 'Bearer ' + self.access_token.get_token(),
@@ -209,7 +210,7 @@ class API:
         if not self.error_check_json(response):
             exit(0)
         for response_id in response.json():
-            ids.append(response_id)
+            ids.append(Dataset(response_id, response.json()[response_id]['name']))
         return ids
 
     def upload(self, files, dataset_id, blocking=True):
