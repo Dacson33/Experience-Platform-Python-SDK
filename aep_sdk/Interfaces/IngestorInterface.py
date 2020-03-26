@@ -1,6 +1,6 @@
 import abc
 
-from ParameterClasses.AuthToken import AuthToken
+from aep_sdk.ParameterClasses.AuthToken import AuthToken
 
 
 class IngestorInterface(abc.ABC):
